@@ -1,0 +1,255 @@
+.form-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.ft-btn {
+  padding: 9px 18px;
+  border-radius: 10px;
+  border: 1px solid var(--line2);
+  background: var(--card);
+  color: var(--txt2);
+  font-size: 12.5px;
+  font-weight: 600;
+  transition: 0.25s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ft-btn.active {
+  background: var(--violet);
+  border-color: var(--violet);
+  color: #fff;
+}
+
+.ft-btn .ic {
+  font-size: 14px;
+}
+
+.legend {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  padding: 11px 16px;
+  margin-bottom: 18px;
+  font-size: 12px;
+  color: var(--txt2);
+}
+
+.legend .li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.legend .sw {
+  width: 13px;
+  height: 13px;
+  border-radius: 4px;
+}
+
+.tab-pane {
+  display: none;
+  animation: screenIn 0.4s;
+}
+
+.tab-pane.active {
+  display: block;
+}
+
+.cols-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.cols-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.field {
+  margin-bottom: 13px;
+}
+
+.field label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  color: var(--txt2);
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+.field .inp,
+.row2 .inp,
+textarea.inp {
+  width: 100%;
+}
+
+.field .inp {
+  padding: 9px 11px;
+  font-size: 13px;
+}
+
+.inp.ai-filled {
+  border-color: var(--violet-d);
+  background: var(--violet-bg);
+  color: var(--violet-tx);
+  font-weight: 500;
+}
+
+.inp.ai-pop {
+  animation: aiPop 0.6s cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+select.inp {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%2394A1B5' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 9px center;
+  padding-right: 28px;
+}
+
+select.inp option {
+  background: var(--card);
+}
+
+textarea.inp {
+  resize: vertical;
+  min-height: 60px;
+  font-size: 13px;
+  padding: 9px 11px;
+}
+
+.hint {
+  font-size: 9.5px;
+  color: var(--txt3);
+  margin-top: 4px;
+}
+
+.row2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+table.bank {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 11.5px;
+  min-width: 880px;
+}
+
+table.bank th {
+  background: var(--card2);
+  padding: 9px 8px;
+  text-align: center;
+  color: var(--txt2);
+  font-weight: 600;
+  font-size: 10px;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+
+table.bank th:first-child {
+  text-align: left;
+}
+
+table.bank td {
+  padding: 0;
+  border-bottom: 1px solid var(--line);
+}
+
+table.bank td.m {
+  padding: 8px;
+  font-weight: 600;
+  color: var(--txt);
+  font-family: var(--mono);
+  font-size: 11px;
+}
+
+table.bank tr:last-child td {
+  border-bottom: none;
+}
+
+table.bank .tinp {
+  width: 100%;
+  padding: 8px 7px;
+  background: transparent;
+  border: none;
+  color: var(--txt);
+  font-size: 11px;
+  text-align: right;
+  outline: none;
+  font-family: var(--mono);
+}
+
+table.bank .tinp.ai {
+  background: var(--violet-bg);
+  color: var(--violet-tx);
+}
+
+table.bank .tinp:focus {
+  background: var(--card2);
+}
+
+table.bank tr.total td {
+  background: var(--emerald-bg);
+  font-weight: 700;
+  color: var(--emerald-tx);
+  font-family: var(--mono);
+  padding: 8px;
+}
+
+.yr-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+  align-items: center;
+}
+
+.yr-tab {
+  padding: 7px 13px;
+  border-radius: 9px;
+  border: 1px solid var(--line2);
+  background: var(--card);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--txt2);
+  transition: 0.25s;
+}
+
+.yr-tab.active {
+  background: var(--emerald);
+  border-color: var(--emerald);
+  color: var(--on-emerald);
+}
+
+.yr-tab.proj {
+  border-style: dashed;
+}
+
+.yr-tab.proj.active {
+  background: var(--violet);
+  border-color: var(--violet);
+  color: #fff;
+}
+
+.fin-mini {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(95px, 1fr));
+  gap: 7px;
+  margin-bottom: 8px;
+}

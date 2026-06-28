@@ -1,0 +1,297 @@
+.login-wrap {
+  min-height: calc(100vh - 60px);
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 50px;
+  align-items: center;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 40px 22px;
+}
+
+.login-hero .eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 99px;
+  background: var(--card);
+  border: 1px solid var(--line2);
+  font-size: 12px;
+  color: var(--txt2);
+  font-weight: 500;
+  margin-bottom: 22px;
+  box-shadow: var(--shadow);
+  animation: fadeUp 0.6s both;
+}
+
+.login-hero .eyebrow .spark {
+  color: var(--violet);
+}
+
+.login-hero h1 {
+  font-family: var(--disp);
+  font-weight: 700;
+  font-size: clamp(30px, 4.4vw, 46px);
+  line-height: 1.06;
+  letter-spacing: -1.2px;
+  margin-bottom: 16px;
+  animation: fadeUp 0.6s 0.08s both;
+}
+
+.login-hero h1 .grad {
+  background: linear-gradient(120deg, var(--violet) 10%, var(--emerald) 90%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.login-hero p {
+  font-size: 15.5px;
+  color: var(--txt2);
+  line-height: 1.6;
+  max-width: 440px;
+  margin-bottom: 26px;
+  animation: fadeUp 0.6s 0.16s both;
+}
+
+.login-hero .feats {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  animation: fadeUp 0.6s 0.24s both;
+}
+
+.login-hero .feat {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13.5px;
+  color: var(--txt2);
+}
+
+.login-hero .feat .fi {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: var(--violet-bg);
+  color: var(--violet-tx);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.login-card {
+  background: var(--card);
+  border: 1px solid var(--line2);
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: var(--shadow);
+  animation: fadeUp 0.6s 0.2s both;
+}
+
+.login-card h2 {
+  font-family: var(--disp);
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.login-card .lc-sub {
+  font-size: 13px;
+  color: var(--txt3);
+  margin-bottom: 22px;
+}
+
+.lf {
+  margin-bottom: 16px;
+}
+
+.lf label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--txt2);
+  margin-bottom: 7px;
+}
+
+.lf .inp {
+  width: 100%;
+}
+
+.pw-wrap {
+  position: relative;
+}
+
+.pw-eye {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: none;
+  color: var(--txt3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  border-radius: 8px;
+}
+
+.pw-eye:hover {
+  color: var(--txt2);
+}
+
+.ctype-seg {
+  display: flex;
+  gap: 8px;
+}
+
+.ctype {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 13px;
+  border-radius: 11px;
+  border: 1.5px solid var(--line2);
+  background: var(--field-bg);
+  transition: 0.2s;
+  text-align: left;
+}
+
+.ctype .ci {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  flex-shrink: 0;
+  background: var(--card2);
+  color: var(--txt2);
+}
+
+.ctype .ct {
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.ctype .cd {
+  font-size: 9.5px;
+  color: var(--txt3);
+}
+
+.ctype.on {
+  border-color: var(--violet);
+  background: var(--violet-bg);
+}
+
+.ctype.on .ci {
+  background: var(--violet);
+  color: #fff;
+}
+
+.login-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 18px 0 16px;
+}
+
+.remember {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--txt2);
+  cursor: pointer;
+}
+
+.forgot {
+  font-size: 12px;
+  color: var(--violet-tx);
+  font-weight: 600;
+  background: none;
+  border: none;
+}
+
+.login-err {
+  display: none;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  color: var(--red-tx);
+  background: var(--red-bg);
+  border: 1px solid var(--line2);
+  padding: 9px 12px;
+  border-radius: 9px;
+  margin-bottom: 14px;
+}
+
+.login-btn {
+  width: 100%;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+.otp-back {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--txt2);
+  font-weight: 600;
+  background: none;
+  border: none;
+  padding: 0;
+  margin-bottom: 16px;
+  cursor: pointer;
+}
+
+.otp-back:hover { color: var(--txt); }
+
+.otp-sent-to {
+  font-size: 13px;
+  color: var(--txt2);
+  margin-bottom: 18px;
+  padding: 10px 13px;
+  background: var(--card2);
+  border-radius: 9px;
+  border: 1px solid var(--line2);
+}
+
+.otp-input {
+  letter-spacing: 6px;
+  font-size: 22px !important;
+  font-weight: 700;
+  text-align: center;
+  font-family: var(--mono);
+}
+
+.otp-resend {
+  font-size: 12px;
+  color: var(--txt3);
+  text-align: center;
+  margin: -4px 0 16px;
+}
+
+.resend-btn {
+  background: none;
+  border: none;
+  font-size: 12px;
+  color: var(--violet-tx);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+.resend-btn:disabled {
+  color: var(--txt3);
+  cursor: not-allowed;
+}

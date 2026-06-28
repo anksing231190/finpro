@@ -1,0 +1,76 @@
+/* ───────── LIGHT THEME (default) ───────── */
+:root {
+  --bg: #F4F6FB;
+  --bg2: #E9EDF4;
+  --card: #FFFFFF;
+  --card2: #F7F9FC;
+  --line: #E4E8F0;
+  --line2: #CFD6E2;
+  --txt: #0F172A;
+  --txt2: #52617A;
+  --txt3: #94A1B5;
+  --emerald: #059669;
+  --emerald-bg: #E7F8F0;
+  --emerald-d: #9DE6C6;
+  --emerald-tx: #06765A;
+  --on-emerald: #FFFFFF;
+  --violet: #7C3AED;
+  --violet-bg: #F2EEFE;
+  --violet-d: #D5C9FB;
+  --violet-tx: #5E27C4;
+  --amber: #D97706;
+  --amber-bg: #FCF3E2;
+  --amber-tx: #9A5808;
+  --amber-d: #E3C089;
+  --red: #DC2626;
+  --red-bg: #FCECEC;
+  --red-tx: #B71C1C;
+  --blue: #2563EB;
+  --blue-tx: #1D4ED8;
+  --orb-op: 0.14;
+  --grid-op: 0.55;
+  --shadow: 0 18px 40px -16px rgba(20, 30, 60, 0.22);
+  --field-bg: #F7F9FC;
+  --topbar-bg: rgba(244, 246, 251, 0.85);
+  --overlay: rgba(244, 246, 251, 0.92);
+  --r: 12px;
+  --sans: 'Inter', system-ui, sans-serif;
+  --disp: 'Space Grotesk', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+}
+
+[data-theme='dark'] {
+  --bg: #070A0F;
+  --bg2: #0C1018;
+  --card: #10151F;
+  --card2: #141B27;
+  --line: #1F2937;
+  --line2: #2A3645;
+  --txt: #E7ECF3;
+  --txt2: #9AA7B8;
+  --txt3: #5E6B7E;
+  --emerald: #10B981;
+  --emerald-bg: #06291F;
+  --emerald-d: #065F46;
+  --emerald-tx: #34D399;
+  --on-emerald: #04140E;
+  --violet: #8B5CF6;
+  --violet-bg: #1C1230;
+  --violet-d: #5B21B6;
+  --violet-tx: #C4B5FD;
+  --amber: #F59E0B;
+  --amber-bg: #2A1E06;
+  --amber-tx: #FCD9A0;
+  --amber-d: #7c5a09;
+  --red: #F26D6D;
+  --red-bg: #2A0F0F;
+  --red-tx: #FCA5A5;
+  --blue: #3B82F6;
+  --blue-tx: #7DB1FF;
+  --orb-op: 0.30;
+  --grid-op: 1;
+  --shadow: 0 24px 50px -16px rgba(0, 0, 0, 0.7);
+  --field-bg: #0E141D;
+  --topbar-bg: rgba(7, 10, 15, 0.82);
+  --overlay: rgba(7, 10, 15, 0.94);
+}

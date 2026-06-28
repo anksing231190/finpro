@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apex Credit — AI Credit Assessment Module</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;450;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.5.0/dist/tabler-icons.min.css">
+<style>
+/* ───────── LIGHT THEME (default) ───────── */
+:root{
+  --bg:#F4F6FB; --bg2:#E9EDF4; --card:#FFFFFF; --card2:#F7F9FC;
+  --line:#E4E8F0; --line2:#CFD6E2;
+  --txt:#0F172A; --txt2:#52617A; --txt3:#94A1B5;
+  --emerald:#059669; --emerald-bg:#E7F8F0; --emerald-d:#9DE6C6; --emerald-tx:#06765A; --on-emerald:#FFFFFF;
+  --violet:#7C3AED; --violet-bg:#F2EEFE; --violet-d:#D5C9FB; --violet-tx:#5E27C4;
+  --amber:#D97706; --amber-bg:#FCF3E2; --amber-tx:#9A5808; --amber-d:#E3C089;
+  --red:#DC2626; --red-bg:#FCECEC; --red-tx:#B71C1C;
+  --blue:#2563EB; --blue-tx:#1D4ED8;
+  --orb-op:.14; --grid-op:.55; --shadow:0 18px 40px -16px rgba(20,30,60,.22);
+  --field-bg:#F7F9FC; --topbar-bg:rgba(244,246,251,.85); --overlay:rgba(244,246,251,.92);
+  --r:12px; --sans:'Inter',system-ui,sans-serif; --disp:'Space Grotesk',system-ui,sans-serif; --mono:'JetBrains Mono',monospace;
+}
+[data-theme="dark"]{
+  --bg:#070A0F; --bg2:#0C1018; --card:#10151F; --card2:#141B27;
+  --line:#1F2937; --line2:#2A3645;
+  --txt:#E7ECF3; --txt2:#9AA7B8; --txt3:#5E6B7E;
+  --emerald:#10B981; --emerald-bg:#06291F; --emerald-d:#065F46; --emerald-tx:#34D399; --on-emerald:#04140E;
+  --violet:#8B5CF6; --violet-bg:#1C1230; --violet-d:#5B21B6; --violet-tx:#C4B5FD;
+  --amber:#F59E0B; --amber-bg:#2A1E06; --amber-tx:#FCD9A0; --amber-d:#7c5a09;
+  --red:#F26D6D; --red-bg:#2A0F0F; --red-tx:#FCA5A5;
+  --blue:#3B82F6; --blue-tx:#7DB1FF;
+  --orb-op:.30; --grid-op:1; --shadow:0 24px 50px -16px rgba(0,0,0,.7);
+  --field-bg:#0E141D; --topbar-bg:rgba(7,10,15,.82); --overlay:rgba(7,10,15,.94);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);background:var(--bg);color:var(--txt);overflow-x:hidden;-webkit-font-smoothing:antialiased;transition:background .35s,color .35s}
+::selection{background:var(--violet);color:#fff}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--line2);border-radius:6px;border:2px solid var(--bg2)}
+button{font-family:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit}
+
+.orb{position:fixed;border-radius:50%;filter:blur(90px);opacity:var(--orb-op);z-index:0;pointer-events:none;transition:opacity .35s}
+.orb.a{width:520px;height:520px;background:var(--violet);top:-160px;right:-120px;animation:float1 18s ease-in-out infinite}
+.orb.b{width:440px;height:440px;background:var(--emerald);bottom:-180px;left:-120px;animation:float2 22s ease-in-out infinite}
+.grid-bg{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:calc(.10*var(--grid-op));
+  background-image:linear-gradient(var(--line2) 1px,transparent 1px),linear-gradient(90deg,var(--line2) 1px,transparent 1px);
+  background-size:54px 54px;mask-image:radial-gradient(ellipse 80% 60% at 50% 0%,#000 30%,transparent 75%)}
+@keyframes float1{0%,100%{transform:translate(0,0)}50%{transform:translate(-40px,50px)}}
+@keyframes float2{0%,100%{transform:translate(0,0)}50%{transform:translate(50px,-40px)}}
+
+/* ── top bar ── */
+.topbar{position:sticky;top:0;z-index:100;height:60px;display:flex;align-items:center;gap:14px;padding:0 22px;
+  background:var(--topbar-bg);backdrop-filter:blur(16px);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--disp);font-weight:700;font-size:16px;letter-spacing:-.3px}
+.brand .mark{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--violet),var(--emerald));
+  display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;font-weight:700;box-shadow:0 4px 16px rgba(139,92,246,.35)}
+.brand small{font-family:var(--sans);font-weight:450;font-size:10px;color:var(--txt3);letter-spacing:0;display:block;margin-top:-2px}
+.topbar .right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.score-chip{display:none;align-items:center;gap:8px;padding:5px 12px;border-radius:9px;background:var(--card2);border:1px solid var(--line2);font-size:12px;font-weight:600}
+.score-chip .dot{width:7px;height:7px;border-radius:50%;background:var(--emerald);box-shadow:0 0 10px var(--emerald)}
+.ai-badge,.profile-btn{display:none}
+body.authed .ai-badge{display:flex}
+body.authed .profile-btn{display:flex}
+body.authed .score-chip.show{display:flex}
+.ai-badge{align-items:center;gap:6px;padding:5px 11px;border-radius:9px;background:var(--violet-bg);border:1px solid var(--violet-d);color:var(--violet-tx);font-size:11px;font-weight:600}
+.ai-badge .pulse{width:6px;height:6px;border-radius:50%;background:var(--violet);animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(139,92,246,.5)}50%{opacity:.6;box-shadow:0 0 0 5px rgba(139,92,246,0)}}
+
+.profile-btn{align-items:center;gap:9px;padding:4px 9px 4px 4px;border-radius:11px;background:var(--card2);border:1px solid var(--line2);transition:.2s}
+.profile-btn:hover{border-color:var(--violet)}
+.avatar{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--blue),var(--violet));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:12px;flex-shrink:0}
+.profile-btn .pname{font-size:12.5px;font-weight:600;line-height:1.1}
+.profile-btn .prole{font-size:10px;color:var(--txt3)}
+.profile-btn .cv{color:var(--txt3);font-size:13px;margin-left:2px}
+.dropdown{position:fixed;top:58px;right:22px;width:248px;background:var(--card);border:1px solid var(--line2);border-radius:14px;box-shadow:var(--shadow);z-index:250;overflow:hidden;display:none;animation:ddIn .2s cubic-bezier(.2,.7,.3,1)}
+.dropdown.show{display:block}
+@keyframes ddIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.dd-head{padding:15px;display:flex;align-items:center;gap:11px;border-bottom:1px solid var(--line)}
+.dd-head .avatar{width:40px;height:40px;border-radius:11px;font-size:15px}
+.dd-head .nm{font-size:14px;font-weight:600}
+.dd-head .em{font-size:11px;color:var(--txt3)}
+.dd-item{display:flex;align-items:center;gap:11px;padding:11px 15px;font-size:13px;color:var(--txt);transition:.15s;border:none;background:none;width:100%;text-align:left}
+.dd-item i{font-size:17px;color:var(--txt2);width:18px}
+.dd-item:hover{background:var(--card2)}
+.dd-item.danger{color:var(--red)}.dd-item.danger i{color:var(--red)}
+.dd-sep{height:1px;background:var(--line);margin:4px 0}
+
+/* ── modal ── */
+.modal-bg{position:fixed;inset:0;background:rgba(15,23,42,.5);backdrop-filter:blur(4px);z-index:300;display:none;align-items:flex-start;justify-content:center;padding:80px 20px;animation:fadeIn .2s}
+.modal-bg.show{display:flex}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{width:100%;max-width:480px;background:var(--card);border:1px solid var(--line2);border-radius:18px;box-shadow:var(--shadow);overflow:hidden;animation:modalIn .3s cubic-bezier(.2,.7,.3,1)}
+@keyframes modalIn{from{opacity:0;transform:translateY(20px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+.modal-head{display:flex;align-items:center;gap:12px;padding:18px 20px;border-bottom:1px solid var(--line)}
+.modal-head .mh-ic{width:38px;height:38px;border-radius:11px;background:var(--violet-bg);color:var(--violet-tx);display:flex;align-items:center;justify-content:center;font-size:18px}
+.modal-head h3{font-family:var(--disp);font-size:17px;font-weight:600}
+.modal-head p{font-size:11.5px;color:var(--txt3);margin-top:1px}
+.modal-head .close{margin-left:auto;width:32px;height:32px;border-radius:9px;border:1px solid var(--line2);background:var(--card2);color:var(--txt2);display:flex;align-items:center;justify-content:center;font-size:16px;transition:.2s}
+.modal-head .close:hover{border-color:var(--red);color:var(--red)}
+.modal-body{padding:20px;max-height:60vh;overflow-y:auto}
+.modal-foot{padding:15px 20px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:10px}
+.set-row{margin-bottom:20px}
+.set-row .sl{font-size:13px;font-weight:600;margin-bottom:4px}
+.set-row .sd{font-size:11.5px;color:var(--txt3);margin-bottom:10px}
+.seg{display:flex;gap:4px;background:var(--bg2);border-radius:10px;padding:4px}
+.seg button{flex:1;padding:8px;border-radius:7px;border:none;background:transparent;color:var(--txt2);font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;transition:.2s}
+.seg button.on{background:var(--card);color:var(--txt);box-shadow:0 2px 8px -2px rgba(0,0,0,.15)}
+.toggle{width:42px;height:24px;border-radius:99px;background:var(--line2);position:relative;border:none;transition:.25s;flex-shrink:0}
+.toggle.on{background:var(--emerald)}
+.toggle::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.25s}
+.toggle.on::after{transform:translateX(18px)}
+.set-flex{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.prof-field{margin-bottom:14px}
+.prof-field label{font-size:11px;color:var(--txt2);font-weight:500;margin-bottom:5px;display:block}
+.prof-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* ── screen system ── */
+.screen{position:relative;z-index:2;display:none;animation:screenIn .5s cubic-bezier(.2,.7,.3,1)}
+.screen.active{display:block}
+@keyframes screenIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.wrap{max-width:1280px;margin:0 auto;padding:0 22px}
+
+/* ── LOGIN ── */
+.login-wrap{min-height:calc(100vh - 60px);display:grid;grid-template-columns:1.05fr .95fr;gap:50px;align-items:center;max-width:1080px;margin:0 auto;padding:40px 22px}
+.login-hero .eyebrow{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:99px;background:var(--card);border:1px solid var(--line2);font-size:12px;color:var(--txt2);font-weight:500;margin-bottom:22px;box-shadow:var(--shadow);animation:fadeUp .6s both}
+.login-hero .eyebrow .spark{color:var(--violet)}
+.login-hero h1{font-family:var(--disp);font-weight:700;font-size:clamp(30px,4.4vw,46px);line-height:1.06;letter-spacing:-1.2px;margin-bottom:16px;animation:fadeUp .6s .08s both}
+.login-hero h1 .grad{background:linear-gradient(120deg,var(--violet) 10%,var(--emerald) 90%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.login-hero p{font-size:15.5px;color:var(--txt2);line-height:1.6;max-width:440px;margin-bottom:26px;animation:fadeUp .6s .16s both}
+.login-hero .feats{display:flex;flex-direction:column;gap:11px;animation:fadeUp .6s .24s both}
+.login-hero .feat{display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--txt2)}
+.login-hero .feat .fi{width:30px;height:30px;border-radius:9px;background:var(--violet-bg);color:var(--violet-tx);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.login-card{background:var(--card);border:1px solid var(--line2);border-radius:20px;padding:30px;box-shadow:var(--shadow);animation:fadeUp .6s .2s both}
+.login-card h2{font-family:var(--disp);font-size:22px;font-weight:600;margin-bottom:5px}
+.login-card .lc-sub{font-size:13px;color:var(--txt3);margin-bottom:22px}
+.lf{margin-bottom:16px}
+.lf label{display:block;font-size:12px;font-weight:600;color:var(--txt2);margin-bottom:7px}
+.lf .inp{width:100%}
+.inp{padding:11px 13px;border-radius:10px;border:1px solid var(--line2);background:var(--field-bg);color:var(--txt);font-size:14px;outline:none;transition:.2s}
+.inp::placeholder{color:var(--txt3)}
+.inp:focus{border-color:var(--violet);box-shadow:0 0 0 3px var(--violet-bg)}
+.pw-wrap{position:relative}
+.pw-eye{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:32px;height:32px;border:none;background:none;color:var(--txt3);display:flex;align-items:center;justify-content:center;font-size:17px;border-radius:8px}
+.pw-eye:hover{color:var(--txt2)}
+.ctype-seg{display:flex;gap:8px}
+.ctype{flex:1;display:flex;align-items:center;gap:9px;padding:11px 13px;border-radius:11px;border:1.5px solid var(--line2);background:var(--field-bg);transition:.2s;text-align:left}
+.ctype .ci{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;background:var(--card2);color:var(--txt2)}
+.ctype .ct{font-size:12.5px;font-weight:600}
+.ctype .cd{font-size:9.5px;color:var(--txt3)}
+.ctype.on{border-color:var(--violet);background:var(--violet-bg)}
+.ctype.on .ci{background:var(--violet);color:#fff}
+.login-row{display:flex;align-items:center;justify-content:space-between;margin:18px 0 16px}
+.remember{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--txt2);cursor:pointer}
+.forgot{font-size:12px;color:var(--violet-tx);font-weight:600;background:none;border:none}
+.login-err{display:none;align-items:center;gap:7px;font-size:12px;color:var(--red-tx);background:var(--red-bg);border:1px solid var(--line2);padding:9px 12px;border-radius:9px;margin-bottom:14px}
+.login-err.show{display:flex}
+.login-btn{width:100%;justify-content:center;margin-bottom:14px}
+.demo-hint{font-size:11px;color:var(--txt3);text-align:center}
+
+/* ── stepper (in-page) ── */
+.stepper{display:flex;align-items:center;gap:6px;margin:26px 0 4px}
+.stp{display:flex;align-items:center;gap:9px;padding:9px 18px;border-radius:12px;font-size:13px;font-weight:600;color:var(--txt3);background:var(--card);border:1px solid var(--line);transition:.25s}
+.stp .n{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--line2);display:flex;align-items:center;justify-content:center;font-size:11px;transition:.25s}
+.stp.active{color:var(--txt);border-color:var(--violet);background:var(--violet-bg)}
+.stp.active .n{background:var(--violet);border-color:var(--violet);color:#fff}
+.stp.done{color:var(--txt2);cursor:pointer}
+.stp.done .n{background:var(--emerald);border-color:var(--emerald);color:var(--on-emerald)}
+.stp.done:hover{border-color:var(--emerald)}
+.stp.todo{opacity:.55}
+.stp-line{flex:0 0 30px;height:2px;background:var(--line2);border-radius:2px}
+
+.scr-head{padding:16px 0 18px}
+.scr-head h2{font-family:var(--disp);font-size:25px;font-weight:600;letter-spacing:-.5px;margin-bottom:6px}
+.scr-head p{color:var(--txt2);font-size:14px}
+
+/* ── UPLOAD ── */
+.upload-layout{display:grid;grid-template-columns:340px 1fr;gap:22px;padding-bottom:60px;align-items:start}
+.doc-list{display:flex;flex-direction:column;gap:10px}
+.progress-card{background:var(--card);border:1px solid var(--line2);border-radius:14px;padding:16px;margin-bottom:6px}
+.progress-card .pc-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:11px}
+.progress-card .pc-top .t{font-size:12px;color:var(--txt2);font-weight:500}
+.progress-card .pc-top .v{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--emerald-tx)}
+.prog-track{height:7px;border-radius:5px;background:var(--bg2);overflow:hidden}
+.prog-fill{height:100%;border-radius:5px;background:linear-gradient(90deg,var(--violet),var(--emerald));width:0;transition:width .7s cubic-bezier(.2,.7,.3,1)}
+.list-hint{font-size:10.5px;color:var(--txt3);margin:2px 2px 8px;display:flex;align-items:center;gap:6px}
+.doc-item{position:relative;background:var(--card);border:1px solid var(--line);border-radius:13px;padding:13px;transition:.25s;overflow:hidden;cursor:pointer;display:flex;align-items:center;gap:12px}
+.doc-item:hover{border-color:var(--line2);background:var(--card2)}
+.doc-item.active{border-color:var(--violet);box-shadow:0 0 0 3px var(--violet-bg)}
+.doc-item.done{border-color:var(--emerald-d)}
+.doc-item.scanning{border-color:var(--violet)}
+.doc-item .di-ic{width:40px;height:40px;border-radius:10px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;transition:.3s;color:var(--txt2)}
+.doc-item.active .di-ic{background:var(--violet-bg);color:var(--violet-tx)}
+.doc-item.done .di-ic{background:var(--emerald-bg);color:var(--emerald-tx)}
+.doc-item .di-name{font-size:13px;font-weight:600}
+.doc-item .di-sub{font-size:10.5px;color:var(--txt3);margin-top:2px}
+.doc-item .di-status{margin-left:auto;font-size:10px;font-weight:600;padding:3px 8px;border-radius:6px;flex-shrink:0}
+.di-status.pending{background:var(--card2);color:var(--txt3)}
+.di-status.req{background:var(--amber-bg);color:var(--amber-tx)}
+.di-status.ok{background:var(--emerald-bg);color:var(--emerald-tx);display:flex;align-items:center;gap:4px}
+.scan-line{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--violet),transparent);box-shadow:0 0 14px 3px var(--violet);top:0;opacity:0}
+.doc-item.scanning .scan-line{animation:scan 1.3s linear infinite;opacity:1}
+@keyframes scan{0%{top:0}100%{top:100%}}
+
+.upload-main{background:var(--card);border:1px solid var(--line2);border-radius:16px;overflow:hidden;min-height:540px;display:flex;flex-direction:column}
+.um-bar{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line);background:var(--card2)}
+.um-bar .um-ic{width:34px;height:34px;border-radius:9px;background:var(--violet-bg);color:var(--violet-tx);display:flex;align-items:center;justify-content:center;font-size:16px}
+.um-bar .um-t{font-size:13.5px;font-weight:600}
+.um-bar .um-s{font-size:11px;color:var(--txt3)}
+.um-bar .um-step{margin-left:auto;font-size:11px;color:var(--emerald-tx);font-family:var(--mono);font-weight:500}
+.dropzone{flex:1;margin:18px;border:2px dashed var(--line2);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px;transition:.3s;position:relative;overflow:hidden}
+.dropzone:hover{border-color:var(--violet);background:var(--violet-bg)}
+.dz-ic{width:74px;height:74px;border-radius:18px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:34px;color:var(--txt2);margin-bottom:20px;transition:.3s}
+.dropzone:hover .dz-ic{color:var(--violet);transform:translateY(-4px)}
+.dropzone h4{font-family:var(--disp);font-size:18px;font-weight:600;margin-bottom:8px}
+.dropzone p{font-size:13px;color:var(--txt2);max-width:380px;line-height:1.6;margin-bottom:22px}
+.dz-formats{display:flex;gap:8px;margin-bottom:24px}
+.fmt{font-size:10px;font-family:var(--mono);padding:3px 9px;border-radius:6px;background:var(--card2);border:1px solid var(--line);color:var(--txt2)}
+.btn{padding:11px 22px;border-radius:11px;border:none;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:8px;transition:.25s;letter-spacing:.2px}
+.btn-primary{background:linear-gradient(120deg,var(--violet),var(--emerald));color:#fff;box-shadow:0 8px 24px -6px rgba(139,92,246,.4)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 14px 32px -6px rgba(139,92,246,.5)}
+.btn-ghost{background:var(--card2);border:1px solid var(--line2);color:var(--txt)}
+.btn-ghost:hover{border-color:var(--violet);color:var(--violet-tx)}
+.btn-emerald{background:var(--emerald);color:var(--on-emerald)}
+.btn-emerald:hover{transform:translateY(-2px);box-shadow:0 12px 28px -6px rgba(16,185,129,.4)}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important;box-shadow:none!important}
+
+/* extracted (post-upload editable) */
+.extracted{flex:1;margin:18px;display:none;flex-direction:column;animation:screenIn .35s}
+.extracted.show{display:flex}
+.ex-head{display:flex;align-items:center;gap:11px;margin-bottom:6px}
+.ex-head .eh-ic{width:36px;height:36px;border-radius:10px;background:var(--emerald-bg);color:var(--emerald-tx);display:flex;align-items:center;justify-content:center;font-size:18px}
+.ex-head .eh-t{font-family:var(--disp);font-size:15px;font-weight:600}
+.ex-head .eh-s{font-size:11px;color:var(--txt3)}
+.ex-note{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--amber-tx);background:var(--amber-bg);border:1px solid var(--line2);padding:9px 12px;border-radius:9px;margin:12px 0 16px}
+.ex-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.ex-field{display:flex;flex-direction:column;gap:6px}
+.ex-field label{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--txt2);font-weight:500}
+.ex-field .inp{width:100%;font-size:13px;background:var(--violet-bg);border-color:var(--violet-d);color:var(--violet-tx);font-weight:500}
+.ex-field .inp:focus{background:var(--field-bg);color:var(--txt);font-weight:400}
+.ex-actions{margin-top:auto;padding-top:18px;display:flex;gap:10px;align-items:center}
+.tag{font-size:8.5px;font-weight:700;padding:1.5px 6px;border-radius:5px;letter-spacing:.3px;display:inline-flex;align-items:center;gap:3px}
+.tag.ai{background:var(--violet-bg);color:var(--violet-tx);border:1px solid var(--violet-d)}
+.tag.calc{background:var(--emerald-bg);color:var(--emerald-tx);border:1px solid var(--emerald-d)}
+.tag.req{background:var(--amber-bg);color:var(--amber-tx);border:1px solid var(--amber-d)}
+
+.scan-overlay{position:absolute;inset:0;background:var(--overlay);backdrop-filter:blur(6px);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:20;animation:fadeIn .3s}
+.scan-overlay.show{display:flex}
+.scan-doc{width:150px;height:190px;border-radius:10px;background:var(--card2);border:1px solid var(--violet);position:relative;overflow:hidden;margin-bottom:26px;box-shadow:0 0 40px -8px var(--violet)}
+.scan-doc .ln{height:7px;border-radius:4px;background:var(--line2);margin:11px 14px;animation:lineFill 1.5s ease-in-out infinite}
+.scan-doc .ln:nth-child(2){width:60%;margin-top:18px}
+.scan-doc .ln:nth-child(3){width:85%;animation-delay:.15s}
+.scan-doc .ln:nth-child(4){width:72%;animation-delay:.3s}
+.scan-doc .ln:nth-child(5){width:90%;animation-delay:.45s}
+.scan-doc .ln:nth-child(6){width:55%;animation-delay:.6s}
+.scan-doc .ln:nth-child(7){width:80%;animation-delay:.75s}
+@keyframes lineFill{0%,100%{background:var(--line2)}50%{background:var(--violet)}}
+.scan-doc .beam{position:absolute;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--emerald),transparent);box-shadow:0 0 16px 4px var(--emerald);animation:scan 1.4s linear infinite}
+.scan-overlay h4{font-family:var(--disp);font-size:18px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:10px}
+.scan-overlay .gear{display:inline-block;animation:spin 1.4s linear infinite;color:var(--violet)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.scan-status{font-size:13px;color:var(--txt2);font-family:var(--mono);height:20px}
+.scan-fields-found{margin-top:20px;display:flex;flex-direction:column;gap:6px;align-items:flex-start;min-height:90px}
+.found-field{font-size:12px;color:var(--emerald-tx);display:flex;align-items:center;gap:8px;animation:foundIn .4s both}
+@keyframes foundIn{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:translateX(0)}}
+
+.upload-footer{display:flex;align-items:center;gap:14px;padding:16px 18px;border-top:1px solid var(--line);background:var(--card2)}
+.upload-footer .note{font-size:12px;color:var(--txt3)}
+
+/* ── FORM ── */
+.form-tabs{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap}
+.ft-btn{padding:9px 18px;border-radius:10px;border:1px solid var(--line2);background:var(--card);color:var(--txt2);font-size:12.5px;font-weight:600;transition:.25s;display:flex;align-items:center;gap:8px}
+.ft-btn.active{background:var(--violet);border-color:var(--violet);color:#fff}
+.ft-btn .ic{font-size:14px}
+.legend{display:flex;gap:18px;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);border-radius:11px;padding:11px 16px;margin-bottom:18px;font-size:12px;color:var(--txt2)}
+.legend .li{display:flex;align-items:center;gap:7px}
+.legend .sw{width:13px;height:13px;border-radius:4px}
+.tab-pane{display:none;animation:screenIn .4s}
+.tab-pane.active{display:block}
+.cols-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;align-items:start}
+.cols-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+.panel{background:var(--card);border:1px solid var(--line2);border-radius:14px;padding:18px;box-shadow:0 1px 3px rgba(20,30,60,.03)}
+.panel-title{font-family:var(--disp);font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;display:flex;align-items:center;gap:8px;padding-bottom:11px;border-bottom:1px solid var(--line)}
+.panel-title .tdot{width:8px;height:8px;border-radius:3px}
+.field{margin-bottom:13px}
+.field label{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--txt2);font-weight:500;margin-bottom:6px}
+.field .inp,.row2 .inp,textarea.inp{width:100%}
+.inp.full{width:100%}
+.field .inp{padding:9px 11px;font-size:13px}
+.inp.ai-filled{border-color:var(--violet-d);background:var(--violet-bg);color:var(--violet-tx);font-weight:500}
+.inp.ai-pop{animation:aiPop .6s cubic-bezier(.2,.7,.3,1)}
+@keyframes aiPop{0%{box-shadow:0 0 0 0 rgba(139,92,246,.5)}40%{box-shadow:0 0 0 6px rgba(139,92,246,0)}100%{}}
+select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%2394A1B5' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 9px center;padding-right:28px}
+select.inp option{background:var(--card)}
+textarea.inp{resize:vertical;min-height:60px;font-size:13px;padding:9px 11px}
+.hint{font-size:9.5px;color:var(--txt3);margin-top:4px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.computed{display:flex;justify-content:space-between;align-items:center;padding:10px 13px;border-radius:10px;background:var(--emerald-bg);border:1px solid var(--emerald-d);margin-top:4px}
+.computed .cl{font-size:11px;color:var(--emerald-tx);font-weight:500}
+.computed .cv{font-family:var(--mono);font-size:15px;font-weight:600;color:var(--emerald-tx)}
+.check{display:flex;align-items:center;gap:9px;padding:6px 0;cursor:pointer;font-size:12px;color:var(--txt2);transition:.2s}
+.check:hover{color:var(--txt)}
+.chk{width:16px;height:16px;border-radius:5px;border:1.5px solid var(--line2);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:.2s}
+.chk.on{background:var(--violet);border-color:var(--violet)}
+.chk.on::after{content:"✓";color:#fff;font-size:10px;font-weight:700}
+.subhead{font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.8px;margin:14px 0 9px}
+.divider{height:1px;background:var(--line);margin:14px 0}
+
+.tbl-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--line)}
+table.bank{border-collapse:collapse;width:100%;font-size:11.5px;min-width:880px}
+table.bank th{background:var(--card2);padding:9px 8px;text-align:center;color:var(--txt2);font-weight:600;font-size:10px;border-bottom:1px solid var(--line);white-space:nowrap}
+table.bank th:first-child{text-align:left}
+table.bank td{padding:0;border-bottom:1px solid var(--line)}
+table.bank td.m{padding:8px;font-weight:600;color:var(--txt);font-family:var(--mono);font-size:11px}
+table.bank tr:last-child td{border-bottom:none}
+table.bank .tinp{width:100%;padding:8px 7px;background:transparent;border:none;color:var(--txt);font-size:11px;text-align:right;outline:none;font-family:var(--mono)}
+table.bank .tinp.ai{background:var(--violet-bg);color:var(--violet-tx)}
+table.bank .tinp:focus{background:var(--card2)}
+table.bank tr.total td{background:var(--emerald-bg);font-weight:700;color:var(--emerald-tx);font-family:var(--mono);padding:8px}
+
+.yr-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+.yr-tab{padding:7px 13px;border-radius:9px;border:1px solid var(--line2);background:var(--card);font-size:11px;font-weight:600;color:var(--txt2);transition:.25s}
+.yr-tab.active{background:var(--emerald);border-color:var(--emerald);color:var(--on-emerald)}
+.yr-tab.proj{border-style:dashed}
+.yr-tab.proj.active{background:var(--violet);border-color:var(--violet);color:#fff}
+.fin-mini{display:grid;grid-template-columns:repeat(auto-fit,minmax(95px,1fr));gap:7px;margin-bottom:8px}
+
+.assess-top{display:grid;grid-template-columns:1.1fr 1fr;gap:16px;margin-bottom:16px}
+.gauge-wrap{display:flex;align-items:center;gap:22px}
+.gauge{position:relative;width:170px;height:170px;flex-shrink:0}
+.gauge svg{transform:rotate(-90deg)}
+.gauge .score-num{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.gauge .score-num .n{font-family:var(--disp);font-size:46px;font-weight:700;line-height:1}
+.gauge .score-num .of{font-size:11px;color:var(--txt3);margin-top:2px}
+.band-info h3{font-family:var(--disp);font-size:22px;font-weight:600;margin-bottom:6px}
+.band-info .elig{display:inline-flex;align-items:center;gap:7px;padding:5px 12px;border-radius:8px;background:var(--emerald-bg);color:var(--emerald-tx);font-size:12px;font-weight:600;margin-bottom:14px}
+.band-scale{display:flex;gap:3px;margin-bottom:6px}
+.band-seg{flex:1;height:7px;border-radius:3px;background:var(--line2);transition:.4s}
+.band-lbl{display:flex;justify-content:space-between;font-size:9px;color:var(--txt3)}
+.breakdown{display:grid;grid-template-columns:1fr 1fr;gap:7px 16px;margin-top:6px}
+.bd-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--line);font-size:11.5px}
+.bd-row .k{color:var(--txt2)}
+.bd-row .v{font-family:var(--mono);font-weight:600}
+.bd-row .v.full{color:var(--emerald-tx)}
+.bd-row .v.part{color:var(--amber-tx)}
+.ratios{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px}
+.ratio{background:var(--card2);border:1px solid var(--line);border-radius:11px;padding:13px;text-align:center;transition:.25s}
+.ratio:hover{border-color:var(--line2);transform:translateY(-2px)}
+.ratio .rn{font-size:9.5px;color:var(--txt3);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.ratio .rv{font-family:var(--disp);font-size:23px;font-weight:600;margin:6px 0 4px}
+.ratio .rs{font-size:9px;font-weight:600;padding:2px 8px;border-radius:5px;display:inline-block}
+.rs.ok{background:var(--emerald-bg);color:var(--emerald-tx)}
+.rs.warn{background:var(--amber-bg);color:var(--amber-tx)}
+.flag{display:flex;align-items:flex-start;gap:9px;padding:10px 12px;border-radius:10px;background:var(--amber-bg);border:1px solid var(--line2);font-size:12px;color:var(--amber-tx);margin-bottom:8px;line-height:1.5}
+.flag i{color:var(--amber);flex-shrink:0;font-size:15px;margin-top:1px}
+table.trend{border-collapse:collapse;width:100%;font-size:12px;min-width:560px}
+table.trend th{background:var(--card2);padding:9px 11px;text-align:right;color:var(--txt2);font-weight:600;font-size:11px;border-bottom:1px solid var(--line)}
+table.trend th:first-child{text-align:left}
+table.trend td{padding:8px 11px;border-bottom:1px solid var(--line);text-align:right;font-family:var(--mono)}
+table.trend td:first-child{text-align:left;font-family:var(--sans);font-weight:600;color:var(--txt2)}
+table.trend .up{color:var(--emerald-tx)}
+table.trend .down{color:var(--red)}
+.final-cta{display:flex;align-items:center;gap:14px;justify-content:flex-end;margin-top:20px;padding-bottom:60px}
+
+@media(max-width:1080px){.cols-3{grid-template-columns:1fr}.cols-2,.assess-top{grid-template-columns:1fr}.upload-layout{grid-template-columns:1fr}.profile-btn .pname,.profile-btn .prole{display:none}}
+@media(max-width:820px){.login-wrap{grid-template-columns:1fr;gap:28px}.login-hero{text-align:center}.login-hero .feats{display:none}}
+@media(max-width:640px){.ex-grid{grid-template-columns:1fr}.stepper{flex-wrap:wrap}}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.05ms!important}}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--card);border:1px solid var(--emerald-d);color:var(--emerald-tx);padding:12px 20px;border-radius:12px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:10px;z-index:400;box-shadow:var(--shadow);transition:.4s cubic-bezier(.2,.7,.3,1);opacity:0}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="orb a"></div>
+<div class="orb b"></div>
+
+<!-- ══════════════ TOP BAR ══════════════ -->
+<div class="topbar">
+  <div class="brand"><div class="mark">A</div><div>Apex Credit<small>AI Credit Assessment</small></div></div>
+  <div class="right">
+    <div class="ai-badge"><span class="pulse"></span> AI parser active</div>
+    <div class="score-chip" id="topScore"><span class="dot"></span> <span id="topScoreVal">—/100</span></div>
+    <button class="profile-btn" onclick="toggleDropdown(event)">
+      <div class="avatar">PN</div>
+      <div><div class="pname">Priya Nair</div><div class="prole">Credit Analyst</div></div>
+      <i class="ti ti-chevron-down cv"></i>
+    </button>
+  </div>
+</div>
+
+<!-- profile dropdown -->
+<div class="dropdown" id="dropdown">
+  <div class="dd-head"><div class="avatar">PN</div><div><div class="nm">Priya Nair</div><div class="em">priya.nair@apexcapital.in</div></div></div>
+  <button class="dd-item" onclick="openModal('profileModal')"><i class="ti ti-user"></i> Profile</button>
+  <button class="dd-item" onclick="openModal('settingsModal')"><i class="ti ti-settings"></i> Settings</button>
+  <button class="dd-item" onclick="showToast('Help centre opening…')"><i class="ti ti-help-circle"></i> Help &amp; support</button>
+  <div class="dd-sep"></div>
+  <button class="dd-item danger" onclick="logout()"><i class="ti ti-logout"></i> Log out</button>
+</div>
+
+<!-- settings modal -->
+<div class="modal-bg" id="settingsModal" onclick="if(event.target===this)closeModal('settingsModal')">
+  <div class="modal">
+    <div class="modal-head"><div class="mh-ic"><i class="ti ti-settings"></i></div><div><h3>Settings</h3><p>Personalise how Apex Credit looks and behaves</p></div><button class="close" onclick="closeModal('settingsModal')"><i class="ti ti-x"></i></button></div>
+    <div class="modal-body">
+      <div class="set-row">
+        <div class="sl">Appearance</div><div class="sd">Choose your theme. System follows your device setting.</div>
+        <div class="seg" id="themeSeg">
+          <button data-theme="light" onclick="setTheme('light')"><i class="ti ti-sun"></i> Light</button>
+          <button data-theme="dark" onclick="setTheme('dark')"><i class="ti ti-moon"></i> Dark</button>
+          <button data-theme="system" onclick="setTheme('system')"><i class="ti ti-device-desktop"></i> System</button>
+        </div>
+      </div>
+      <div class="set-row"><div class="sl">Default currency unit</div><div class="sd">Unit used across financial inputs and computed values.</div><div class="seg"><button class="on">₹ Crore</button><button>₹ Lakh</button><button>Million</button></div></div>
+      <div class="set-row set-flex"><div><div class="sl">Email notifications</div><div class="sd" style="margin:0">Get notified when an assessment completes.</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
+      <div class="set-row set-flex"><div><div class="sl">Auto-fill from documents</div><div class="sd" style="margin:0">Let the AI populate fields after each upload.</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('settingsModal')">Cancel</button><button class="btn btn-emerald" onclick="closeModal('settingsModal');showToast('Settings saved')">Save changes</button></div>
+  </div>
+</div>
+
+<!-- profile modal -->
+<div class="modal-bg" id="profileModal" onclick="if(event.target===this)closeModal('profileModal')">
+  <div class="modal">
+    <div class="modal-head"><div class="mh-ic" style="background:linear-gradient(135deg,var(--blue),var(--violet));color:#fff"><i class="ti ti-user"></i></div><div><h3>Your profile</h3><p>Account and organisation details</p></div><button class="close" onclick="closeModal('profileModal')"><i class="ti ti-x"></i></button></div>
+    <div class="modal-body">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px">
+        <div class="avatar" style="width:56px;height:56px;border-radius:16px;font-size:20px">PN</div>
+        <div><div style="font-family:var(--disp);font-size:18px;font-weight:600">Priya Nair</div><div style="font-size:12px;color:var(--txt3)">Credit Analyst · Apex Capital · Mumbai branch</div></div>
+      </div>
+      <div class="prof-grid">
+        <div class="prof-field"><label>Full name</label><input class="inp full" value="Priya Nair"></div>
+        <div class="prof-field"><label>Employee ID</label><input class="inp full" value="APX-CR-4471"></div>
+        <div class="prof-field"><label>Email</label><input class="inp full" value="priya.nair@apexcapital.in"></div>
+        <div class="prof-field"><label>Phone</label><input class="inp full" value="+91 98200 11234"></div>
+        <div class="prof-field"><label>Role</label><input class="inp full" value="Credit Analyst"></div>
+        <div class="prof-field"><label>Branch</label><input class="inp full" value="Mumbai"></div>
+      </div>
+      <div class="prof-field" style="margin-bottom:0"><label>Member since</label><input class="inp full" value="March 2022" disabled style="opacity:.7"></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('profileModal')">Cancel</button><button class="btn btn-emerald" onclick="closeModal('profileModal');showToast('Profile updated')">Save profile</button></div>
+  </div>
+</div>
+
+<!-- ══════════════ SCREEN 0 : LOGIN ══════════════ -->
+<section class="screen active" id="screen0">
+  <div class="login-wrap">
+    <div class="login-hero">
+      <div class="eyebrow"><span class="spark">✦</span> Document intelligence for credit teams</div>
+      <h1>Credit decisions that <span class="grad">read themselves</span> from documents</h1>
+      <p>Upload financials once. The AI extracts every figure, auto-fills the assessment, and computes eligibility in real time.</p>
+      <div class="feats">
+        <div class="feat"><div class="fi"><i class="ti ti-file-scan"></i></div> Reads PDF, Word and scanned images</div>
+        <div class="feat"><div class="fi"><i class="ti ti-edit"></i></div> Every extracted value stays editable</div>
+        <div class="feat"><div class="fi"><i class="ti ti-shield-check"></i></div> RBI-aligned CGTMSE scoring</div>
+      </div>
+    </div>
+    <div class="login-card">
+      <h2>Sign in</h2>
+      <div class="lc-sub">Access your AI credit assessment workspace</div>
+      <div class="login-err" id="loginErr"><i class="ti ti-alert-circle"></i> <span>Enter your user ID and password to continue.</span></div>
+      <div class="lf"><label>User ID</label><input class="inp full" id="loginUser" placeholder="priya.nair" autocomplete="username"></div>
+      <div class="lf"><label>Password</label>
+        <div class="pw-wrap"><input class="inp full" id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password">
+          <button class="pw-eye" onclick="togglePw()" aria-label="Show password"><i class="ti ti-eye" id="pwEye"></i></button>
+        </div>
+      </div>
+      <div class="lf"><label>Customer type</label>
+        <div class="ctype-seg">
+          <button class="ctype on" id="ct_company" onclick="pickCustomerType('company')"><span class="ci"><i class="ti ti-building-skyscraper"></i></span><span><span class="ct">Company</span><span class="cd">Business / firm</span></span></button>
+          <button class="ctype" id="ct_individual" onclick="pickCustomerType('individual')"><span class="ci"><i class="ti ti-user"></i></span><span><span class="ct">Individual</span><span class="cd">Salaried person</span></span></button>
+        </div>
+      </div>
+      <div class="login-row">
+        <label class="remember" onclick="toggleChk(this)"><span class="chk on"></span> Remember me</label>
+        <button class="forgot" onclick="showToast('Password reset link sent')">Forgot password?</button>
+      </div>
+      <button class="btn btn-primary login-btn" onclick="doLogin()"><i class="ti ti-login-2"></i> Sign in</button>
+      <div class="demo-hint">Demo — enter any user ID and password to continue</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ SCREEN 1 : UPLOAD ══════════════ -->
+<section class="screen" id="screen1">
+  <div class="wrap">
+    <div class="stepper">
+      <div class="stp active"><span class="n">1</span> Documents</div>
+      <div class="stp-line"></div>
+      <div class="stp todo"><span class="n">2</span> Review</div>
+      <div class="stp-line"></div>
+      <div class="stp todo"><span class="n">3</span> Assessment</div>
+    </div>
+    <div class="scr-head"><h2>Upload your documents</h2><p>Pick a document on the left, upload it, then check the values the AI read — edit anything it got wrong.</p></div>
+    <div class="upload-layout">
+      <div>
+        <div class="progress-card"><div class="pc-top"><span class="t">Documents processed</span><span class="v" id="progLabel">0 / 0</span></div><div class="prog-track"><div class="prog-fill" id="progFill"></div></div></div>
+        <div class="list-hint"><i class="ti ti-pointer"></i> Tap a document to upload it</div>
+        <div class="doc-list" id="docList"></div>
+      </div>
+      <div class="upload-main">
+        <div class="um-bar">
+          <div class="um-ic" id="umIc"><i class="ti ti-file"></i></div>
+          <div><div class="um-t" id="umTitle">Select a document</div><div class="um-s" id="umSub">Choose from the list to begin</div></div>
+          <div class="um-step" id="umStep"></div>
+        </div>
+        <div class="dropzone" id="dropzone" onclick="triggerActiveUpload()">
+          <div class="dz-ic"><i class="ti ti-cloud-upload"></i></div>
+          <h4 id="dzTitle">Drop your document here</h4>
+          <p id="dzDesc">Drag and drop or click to browse. The AI reads PDF, Word and image scans automatically.</p>
+          <div class="dz-formats"><span class="fmt">PDF</span><span class="fmt">DOCX</span><span class="fmt">JPG</span><span class="fmt">PNG</span></div>
+          <button class="btn btn-primary"><i class="ti ti-upload"></i> Browse files</button>
+          <div class="scan-overlay" id="scanOverlay">
+            <div class="scan-doc"><div class="beam"></div><div class="ln"></div><div class="ln"></div><div class="ln"></div><div class="ln"></div><div class="ln"></div><div class="ln"></div></div>
+            <h4><span class="gear"><i class="ti ti-loader-2"></i></span> <span id="scanTitle">Reading document…</span></h4>
+            <div class="scan-status" id="scanStatus">Initialising parser</div>
+            <div class="scan-fields-found" id="foundFields"></div>
+          </div>
+        </div>
+        <div class="extracted" id="extractedView">
+          <div class="ex-head">
+            <div class="eh-ic"><i class="ti ti-circle-check"></i></div>
+            <div><div class="eh-t" id="exTitle">Extracted fields</div><div class="eh-s" id="exSub">Read from your document</div></div>
+          </div>
+          <div class="ex-note"><i class="ti ti-info-circle"></i> Check these values against your document and correct anything the AI misread.</div>
+          <div class="ex-grid" id="exGrid"></div>
+          <div class="ex-actions">
+            <button class="btn btn-ghost" onclick="reupload()"><i class="ti ti-refresh"></i> Re-upload</button>
+            <span style="font-size:11px;color:var(--txt3);margin-left:auto">Edits are saved automatically and flow into Review</span>
+          </div>
+        </div>
+        <div class="upload-footer">
+          <span class="note" id="uploadNote">Upload your financial documents to continue.</span>
+          <button class="btn btn-emerald" id="toReviewBtn" style="margin-left:auto" disabled onclick="goToReview()"><i class="ti ti-arrow-right"></i> Continue to review</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ SCREEN 2 : REVIEW ══════════════ -->
+<section class="screen" id="screen2">
+  <div class="wrap">
+    <div class="stepper">
+      <div class="stp done" onclick="goScreen(1)"><span class="n"><i class="ti ti-check"></i></span> Documents</div>
+      <div class="stp-line"></div>
+      <div class="stp active"><span class="n">2</span> Review</div>
+      <div class="stp-line"></div>
+      <div class="stp todo"><span class="n">3</span> Assessment</div>
+    </div>
+    <div class="scr-head"><h2>Review &amp; complete your assessment</h2><p>Violet fields were read from your documents. Fill in the remaining details to generate your decision.</p></div>
+    <div class="form-tabs">
+      <button class="ft-btn active" onclick="switchFormTab(0,this)"><span class="ic"><i class="ti ti-clipboard-text"></i></span> CAM details</button>
+      <button class="ft-btn" onclick="switchFormTab(1,this)"><span class="ic"><i class="ti ti-building-bank"></i></span> Banking</button>
+      <button class="ft-btn" onclick="switchFormTab(2,this)"><span class="ic"><i class="ti ti-chart-histogram"></i></span> Financials</button>
+    </div>
+    <div class="legend">
+      <span style="font-weight:600;color:var(--txt)">Field types:</span>
+      <div class="li"><span class="sw" style="background:var(--violet-bg);border:1px solid var(--violet-d)"></span> AI-read from document</div>
+      <div class="li"><span class="sw" style="background:var(--emerald-bg);border:1px solid var(--emerald-d)"></span> Auto-computed</div>
+      <div class="li"><span class="sw" style="background:var(--field-bg);border:1px solid var(--line2)"></span> You fill in</div>
+    </div>
+
+    <div class="tab-pane active" id="pane0">
+      <div class="cols-3">
+        <div class="panel">
+          <div class="panel-title"><span class="tdot" style="background:var(--blue)"></span> Borrower details</div>
+          <div class="field"><label>Name of customer / borrower <span class="tag req">Required</span></label><input class="inp" placeholder="M/s ABC Enterprises"></div>
+          <div class="row2"><div class="field"><label>CAM type <span class="tag req">Req</span></label><select class="inp"><option>Fresh Proposal</option><option>Renewal</option><option>Enhancement</option></select></div><div class="field"><label>Constitution <span class="tag ai">✦ AI</span></label><input class="inp ai" data-auto="Proprietorship"></div></div>
+          <div class="row2"><div class="field"><label>CAM date</label><input class="inp ai" data-auto="01-Apr-25"></div><div class="field"><label>Date of incorp. <span class="tag ai">✦ AI</span></label><input class="inp ai" data-auto="01-Jan-20"></div></div>
+          <div class="row2"><div class="field"><label>Promoter vintage (yrs) <span class="tag ai">✦ AI</span></label><input class="inp ai" data-auto="5"></div><div class="field"><label>Promoter age (yrs) <span class="tag req">Req</span></label><input class="inp" placeholder="e.g. 42"></div></div>
+          <div class="field"><label>Industry / nature of business <span class="tag ai">✦ AI</span></label><input class="inp ai" data-auto="Engineering goods manufacturing"></div>
+          <div class="field"><label>GST number <span class="tag ai">✦ AI</span></label><input class="inp ai" data-auto="22ABCDE1234F1Z5"></div>
+          <div class="field"><label>MSME / Udyam no. <span class="tag ai">✦ AI</span></label><input class="inp ai" data-auto="UDYAM-MH-12-0034567"></div>
+          <div class="field"><label>Comments on business</label><textarea class="inp" placeholder="Key customers, suppliers, market position…"></textarea></div>
+        </div>
+        <div class="panel">
+          <div class="panel-title"><span class="tdot" style="background:var(--violet)"></span> CIBIL &amp; bureau</div>
+          <div class="field"><label>Consumer CIBIL score <span class="tag req">Required</span></label><input class="inp" placeholder="Range 300–900"><div class="hint">Lowest of 50% promoters · from bureau pull</div></div>
+          <div class="field"><label>Commercial CIBIL CMR <span class="tag req">Req</span></label><input class="inp" placeholder="0 = No hit · 1 best · 10 worst"></div>
+          <div class="check" onclick="toggleChk(this)"><span class="chk"></span> Erroneous reporting in consumer CIBIL?</div>
+          <div class="check" onclick="toggleChk(this)"><span class="chk"></span> Bureau track record ≥ 12 months?</div>
+          <div class="divider"></div>
+          <div class="panel-title" style="border:none;padding:0;margin-bottom:10px"><span class="tdot" style="background:var(--emerald)"></span> CGTMSE check points</div>
+          <div class="check" onclick="toggleChk(this)"><span class="chk on"></span> Firm / group vintage &gt; 3 years</div>
+          <div class="check" onclick="toggleChk(this)"><span class="chk on"></span> At least one promoter below 65</div>
+          <div class="check" onclick="toggleChk(this)"><span class="chk"></span> Personal guarantee available</div>
+          <div class="check" onclick="toggleChk(this)"><span class="chk"></span> No pending statutory demand</div>
+          <div class="check" onclick="toggleChk(this)"><span class="chk on"></span> DSCR above 1 (audited)</div>
+          <div class="check" onclick="toggleChk(this)"><span class="chk on"></span> Positive net worth (ATNW)</div>
+          <div class="check" onclick="toggleChk(this)"><span class="chk on"></span> Positive EBITDA last 2 years</div>
+        </div>
+        <div class="panel">
+          <div class="panel-title"><span class="tdot" style="background:var(--blue)"></span> Loan requirement</div>
+          <div class="field"><label>Product / facility <span class="tag req">Required</span></label><select class="inp"><option>Working Capital (CC/OD)</option><option>Term Loan</option><option>Home Loan</option><option>LAP</option><option>CGTMSE</option><option>Business Loan (Unsecured)</option></select></div>
+          <div class="field"><label>Loan amount requested <span class="tag req">Required</span></label><input class="inp" placeholder="Same unit as financials (Cr / Lakh)"></div>
+          <div class="row2"><div class="field"><label>Working capital limit</label><input class="inp" placeholder="0.00"></div><div class="field"><label>Term loan proposed</label><input class="inp" placeholder="0.00"></div></div>
+          <div class="row2"><div class="field"><label>Rate of interest (%)</label><input class="inp" placeholder="11.50"></div><div class="field"><label>Tenure (years)</label><input class="inp" placeholder="5"></div></div>
+          <div class="field"><label>Security / collateral</label><input class="inp" placeholder="Hypothecation of current assets + property"></div>
+          <div class="field"><label>Purpose of loan</label><input class="inp" placeholder="Working capital / business expansion"></div>
+          <div class="divider"></div>
+          <div class="subhead">Property — for LAP / HL</div>
+          <div class="field"><label>Property market value <span class="tag ai">✦ AI</span></label><input class="inp ai" data-auto="85.00"></div>
+          <div class="row2"><div class="field"><label>Property type <span class="tag ai">✦ AI</span></label><input class="inp ai" data-auto="Commercial"></div><div class="field"><label>Location <span class="tag ai">✦ AI</span></label><input class="inp ai" data-auto="Pune, Kothrud"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-pane" id="pane1">
+      <div class="panel">
+        <div class="panel-title"><span class="tdot" style="background:var(--violet)"></span> Banking summary — last 6 months <span class="tag ai" style="margin-left:auto">✦ Read from statements</span></div>
+        <div class="tbl-wrap"><table class="bank"><thead><tr><th>Month</th><th>Bank &amp; A/C</th><th>Total credits</th><th>Returns</th><th>OD o/s</th><th>Util %</th><th>Inward ret</th><th>Outward ret</th><th>Limit</th><th>Net deb/cr</th></tr></thead><tbody id="bankBody"></tbody></table></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px">
+          <div><div class="subhead">Group / related-party transactions</div><div class="row2"><div class="field"><label>Total debits (amt)</label><input class="inp" placeholder="0.00"></div><div class="field"><label>Total credits (amt)</label><input class="inp" placeholder="0.00"></div></div></div>
+          <div><div class="subhead">Comments on banking</div><textarea class="inp" placeholder="Utilisation pattern, seasonality, returns analysis…"></textarea></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-pane" id="pane2">
+      <div class="yr-tabs">
+        <button class="yr-tab active">FY 31-Mar-23 · Aud</button><button class="yr-tab">FY 31-Mar-24 · Aud</button><button class="yr-tab">FY 31-Mar-25 · Aud</button><button class="yr-tab proj">FY 31-Mar-26 · Proj</button>
+        <span style="margin-left:auto;font-size:11px;color:var(--txt3)">All values in ₹ Crore · read from uploaded financials</span>
+      </div>
+      <div class="cols-2">
+        <div class="panel">
+          <div class="panel-title"><span class="tdot" style="background:var(--emerald)"></span> Profit &amp; loss</div>
+          <div class="subhead" style="margin-top:0">Revenue</div>
+          <div class="row2"><div class="field" style="margin-bottom:9px"><label>Gross mfg sales <span class="tag ai">✦</span></label><input class="inp ai" data-auto="142.50"></div><div class="field" style="margin-bottom:9px"><label>Gross trading <span class="tag ai">✦</span></label><input class="inp ai" data-auto="28.00"></div><div class="field" style="margin-bottom:9px"><label>Other op. income <span class="tag ai">✦</span></label><input class="inp ai" data-auto="4.20"></div><div class="field" style="margin-bottom:9px"><label>Excise / duties</label><input class="inp" placeholder="0.00"></div></div>
+          <div class="computed"><span class="cl">Net sales · auto</span><span class="cv">174.70</span></div>
+          <div class="subhead">Costs &amp; opex</div>
+          <div class="row2"><div class="field" style="margin-bottom:9px"><label>Purchases <span class="tag ai">✦</span></label><input class="inp ai" data-auto="88.00"></div><div class="field" style="margin-bottom:9px"><label>Raw materials <span class="tag ai">✦</span></label><input class="inp ai" data-auto="22.00"></div><div class="field" style="margin-bottom:9px"><label>Employee cost <span class="tag ai">✦</span></label><input class="inp ai" data-auto="14.50"></div><div class="field" style="margin-bottom:9px"><label>Power &amp; fuel <span class="tag ai">✦</span></label><input class="inp ai" data-auto="3.20"></div><div class="field" style="margin-bottom:9px"><label>Depreciation <span class="tag ai">✦</span></label><input class="inp ai" data-auto="5.80"></div><div class="field" style="margin-bottom:9px"><label>Interest <span class="tag ai">✦</span></label><input class="inp ai" data-auto="8.40"></div><div class="field" style="margin-bottom:9px"><label>Current tax <span class="tag ai">✦</span></label><input class="inp ai" data-auto="4.10"></div><div class="field" style="margin-bottom:9px"><label>Other opex</label><input class="inp" placeholder="0.00"></div></div>
+          <div class="fin-mini"><div class="computed" style="flex-direction:column;align-items:flex-start;gap:2px"><span class="cl">EBITDA</span><span class="cv">32.50</span></div><div class="computed" style="flex-direction:column;align-items:flex-start;gap:2px"><span class="cl">PAT</span><span class="cv">15.80</span></div><div class="computed" style="flex-direction:column;align-items:flex-start;gap:2px"><span class="cl">NCA</span><span class="cv">21.60</span></div></div>
+        </div>
+        <div class="panel">
+          <div class="panel-title"><span class="tdot" style="background:var(--amber)"></span> Balance sheet</div>
+          <div class="subhead" style="margin-top:0">Current assets</div>
+          <div class="row2"><div class="field" style="margin-bottom:9px"><label>RM inventory <span class="tag ai">✦</span></label><input class="inp ai" data-auto="18.50"></div><div class="field" style="margin-bottom:9px"><label>FG inventory <span class="tag ai">✦</span></label><input class="inp ai" data-auto="12.00"></div><div class="field" style="margin-bottom:9px"><label>Debtors ≤6m <span class="tag ai">✦</span></label><input class="inp ai" data-auto="22.40"></div><div class="field" style="margin-bottom:9px"><label>Cash &amp; bank <span class="tag ai">✦</span></label><input class="inp ai" data-auto="6.80"></div></div>
+          <div class="computed"><span class="cl">Total current assets · auto</span><span class="cv">59.70</span></div>
+          <div class="subhead">Fixed assets &amp; liabilities</div>
+          <div class="row2"><div class="field" style="margin-bottom:9px"><label>Land &amp; building <span class="tag ai">✦</span></label><input class="inp ai" data-auto="35.00"></div><div class="field" style="margin-bottom:9px"><label>Plant &amp; machinery <span class="tag ai">✦</span></label><input class="inp ai" data-auto="28.00"></div><div class="field" style="margin-bottom:9px"><label>WC — other banks <span class="tag ai">✦</span></label><input class="inp ai" data-auto="18.00"></div><div class="field" style="margin-bottom:9px"><label>Creditors <span class="tag ai">✦</span></label><input class="inp ai" data-auto="14.20"></div><div class="field" style="margin-bottom:9px"><label>TL — other banks <span class="tag ai">✦</span></label><input class="inp ai" data-auto="22.00"></div><div class="field" style="margin-bottom:9px"><label>Paid-up capital <span class="tag ai">✦</span></label><input class="inp ai" data-auto="10.00"></div><div class="field" style="margin-bottom:9px"><label>Reserves &amp; surplus <span class="tag ai">✦</span></label><input class="inp ai" data-auto="28.60"></div><div class="field" style="margin-bottom:9px"><label>CPLTD <span class="tag ai">✦</span></label><input class="inp ai" data-auto="4.50"></div></div>
+          <div class="fin-mini"><div class="computed" style="flex-direction:column;align-items:flex-start;gap:2px"><span class="cl">TNW</span><span class="cv">38.60</span></div><div class="computed" style="flex-direction:column;align-items:flex-start;gap:2px"><span class="cl">ATNW</span><span class="cv">36.20</span></div><div class="computed" style="flex-direction:column;align-items:flex-start;gap:2px"><span class="cl">Status</span><span class="cv" style="font-size:13px">Balanced</span></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="final-cta"><span style="font-size:12px;color:var(--txt3);margin-right:auto">All extracted values are editable — adjust anything before scoring.</span><button class="btn btn-emerald" onclick="goToAssessment()"><i class="ti ti-sparkles"></i> Generate assessment</button></div>
+  </div>
+</section>
+
+<!-- ══════════════ SCREEN 3 : ASSESSMENT ══════════════ -->
+<section class="screen" id="screen3">
+  <div class="wrap">
+    <div class="stepper">
+      <div class="stp done" onclick="goScreen(1)"><span class="n"><i class="ti ti-check"></i></span> Documents</div>
+      <div class="stp-line"></div>
+      <div class="stp done" onclick="goScreen(2)"><span class="n"><i class="ti ti-check"></i></span> Review</div>
+      <div class="stp-line"></div>
+      <div class="stp active"><span class="n">3</span> Assessment</div>
+    </div>
+    <div class="scr-head"><h2>Credit assessment</h2><p>Computed live from your extracted financials and bureau inputs.</p></div>
+    <div class="assess-top">
+      <div class="panel">
+        <div class="panel-title"><span class="tdot" style="background:var(--red)"></span> CGTMSE score <span class="tag calc" style="margin-left:auto">Auto-computed</span></div>
+        <div class="gauge-wrap">
+          <div class="gauge">
+            <svg width="170" height="170" viewBox="0 0 170 170"><circle cx="85" cy="85" r="72" fill="none" stroke="var(--line)" stroke-width="13"/><circle id="gaugeArc" cx="85" cy="85" r="72" fill="none" stroke="var(--emerald)" stroke-width="13" stroke-linecap="round" stroke-dasharray="452" stroke-dashoffset="452"/></svg>
+            <div class="score-num"><div class="n" id="scoreNum">0</div><div class="of">out of 100</div></div>
+          </div>
+          <div class="band-info">
+            <h3 id="bandName">Calculating…</h3>
+            <div class="elig"><i class="ti ti-circle-check"></i> <span>Eligible for CGTMSE</span></div>
+            <div class="band-scale" id="bandScale"><div class="band-seg"></div><div class="band-seg"></div><div class="band-seg"></div><div class="band-seg"></div><div class="band-seg"></div></div>
+            <div class="band-lbl"><span>E · Very high</span><span>A · Very low</span></div>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="subhead" style="margin-top:0">Score breakdown</div>
+        <div class="breakdown" id="breakdown"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title"><span class="tdot" style="background:var(--emerald)"></span> Key financial ratios <span class="tag calc" style="margin-left:auto">Auto-computed</span></div>
+        <div class="ratios" id="ratios"></div>
+        <div class="divider"></div>
+        <div class="subhead" style="margin-top:0">Flags &amp; exceptions</div>
+        <div class="flag"><i class="ti ti-alert-triangle"></i> DSCR 1.92 is below the recommended 2.0 threshold — monitor repayment capacity closely.</div>
+        <div class="flag"><i class="ti ti-alert-triangle"></i> 3 inward cheque returns in last 6 months — elevated; review banking conduct.</div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span class="tdot" style="background:var(--blue)"></span> Multi-year trend <span class="tag calc" style="margin-left:auto">Across all uploaded years</span></div>
+      <div class="tbl-wrap" style="border:none"><table class="trend"><thead><tr><th>Metric</th><th>FY 23</th><th>FY 24</th><th>FY 25</th><th>FY 26 (P)</th><th>Trend</th></tr></thead><tbody id="trendBody"></tbody></table></div>
+    </div>
+    <div class="final-cta"><button class="btn btn-ghost" onclick="newAssessment()"><i class="ti ti-refresh"></i> Start new assessment</button><button class="btn btn-primary" onclick="showToast('CAM report exported as PDF')"><i class="ti ti-download"></i> Export CAM report</button></div>
+  </div>
+</section>
+
+<div class="toast" id="toast"><i class="ti ti-circle-check"></i> <span id="toastMsg"></span></div>
+
+<script>
+/* ───────── document configs (structured editable fields) ───────── */
+const DOCS = {
+  company: [
+    {id:"kyc",   name:"KYC / Identity",      sub:"PAN, Aadhaar of promoters",   ic:"ti-id",               req:true,  fields:[{k:"PAN",v:"ABCDE1234F"},{k:"Promoter name",v:"Anil Mehta"},{k:"Address",v:"Pune, Maharashtra"}]},
+    {id:"biz",   name:"Business proof",      sub:"GST certificate, Udyam/MSME", ic:"ti-file-certificate", req:true,  fields:[{k:"GSTIN",v:"22ABCDE1234F1Z5"},{k:"Constitution",v:"Proprietorship"},{k:"Udyam no.",v:"UDYAM-MH-12-0034567"},{k:"Industry",v:"Engineering goods mfg"}]},
+    {id:"fin",   name:"Income / financials", sub:"ITR, P&L, balance sheet",     ic:"ti-report-money",     req:true,  fields:[{k:"Net sales (₹Cr)",v:"174.70"},{k:"EBITDA (₹Cr)",v:"32.50"},{k:"PAT (₹Cr)",v:"15.80"},{k:"Total debt (₹Cr)",v:"44.50"},{k:"Reserves (₹Cr)",v:"28.60"},{k:"Depreciation (₹Cr)",v:"5.80"}]},
+    {id:"bank",  name:"Bank statements",     sub:"All accounts · 12 months",    ic:"ti-building-bank",    req:true,  fields:[{k:"Bank & A/C",v:"SBI / 4521xx"},{k:"Avg credits (₹Cr/mo)",v:"12.40"},{k:"Inward returns",v:"3"},{k:"Sanction limit (₹Cr)",v:"25.00"}]},
+    {id:"prop",  name:"Property documents",  sub:"Sale deed, valuation report", ic:"ti-home-2",           req:false, fields:[{k:"Market value (₹Cr)",v:"85.00"},{k:"Type",v:"Commercial"},{k:"Location",v:"Pune, Kothrud"}]},
+    {id:"other", name:"Other documents",     sub:"MOA, partnership deed, SOA",  ic:"ti-files",            req:false, fields:[{k:"Document",v:"Partnership deed"},{k:"Statement of a/c",v:"Attached"}]},
+  ],
+  individual: [
+    {id:"kyc",    name:"KYC / Identity",     sub:"Aadhaar + PAN card",          ic:"ti-id",               req:true,  fields:[{k:"PAN",v:"ABCDE1234F"},{k:"Aadhaar",v:"xxxx-xxxx-1234"},{k:"Name",v:"Rahul Sharma"},{k:"DOB",v:"12-Jun-1986"}]},
+    {id:"salary", name:"Salary slips",       sub:"Last 6 months",               ic:"ti-receipt",          req:true,  fields:[{k:"Net salary (₹/mo)",v:"185000"},{k:"Employer",v:"Acme Tech Pvt Ltd"},{k:"Gross (₹/mo)",v:"240000"},{k:"Deductions (₹/mo)",v:"55000"}]},
+    {id:"form16", name:"Form 16",            sub:"TDS certificate · 2 years",   ic:"ti-file-invoice",     req:true,  fields:[{k:"Gross income (₹)",v:"2880000"},{k:"TDS deducted (₹)",v:"410000"},{k:"Taxable income (₹)",v:"2420000"}]},
+    {id:"itr",    name:"ITR statement",      sub:"Last 2 years",                ic:"ti-file-text",        req:true,  fields:[{k:"Total income (₹)",v:"2900000"},{k:"Tax paid (₹)",v:"420000"},{k:"Refund (₹)",v:"15000"}]},
+    {id:"bank",   name:"Bank statements",    sub:"Salary account · 6 months",   ic:"ti-building-bank",    req:true,  fields:[{k:"Bank & A/C",v:"HDFC / 8842xx"},{k:"Avg balance (₹)",v:"320000"},{k:"Inward returns",v:"0"},{k:"EMI outflow (₹/mo)",v:"45000"}]},
+    {id:"prop",   name:"Property documents", sub:"Sale deed, valuation (LAP/HL)",ic:"ti-home-2",          req:false, fields:[{k:"Market value (₹L)",v:"85.00"},{k:"Type",v:"Residential flat"},{k:"Location",v:"Pune, Kothrud"}]},
+  ]
+};
+const SCAN_STEPS=["Initialising parser","Detecting document type","Extracting text layer","Reading financial tables","Mapping fields to CAM","Validating with checksums"];
+let state={userType:'company',uploaded:new Set(),activeDocTab:null,assessmentDone:false,extracted:{}};
+let loginType='company';
+
+/* ───────── theme ───────── */
+function applyTheme(mode){const root=document.documentElement;let eff=mode;if(mode==='system')eff=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';if(eff==='dark')root.setAttribute('data-theme','dark');else root.removeAttribute('data-theme');}
+function setTheme(mode){try{localStorage.setItem('apex-theme',mode);}catch(e){}applyTheme(mode);document.querySelectorAll('#themeSeg button').forEach(b=>b.classList.toggle('on',b.dataset.theme===mode));}
+function initTheme(){let saved='light';try{saved=localStorage.getItem('apex-theme')||'light';}catch(e){}applyTheme(saved);document.querySelectorAll('#themeSeg button').forEach(b=>b.classList.toggle('on',b.dataset.theme===saved));window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{let cur='light';try{cur=localStorage.getItem('apex-theme')||'light';}catch(e){}if(cur==='system')applyTheme('system');});}
+
+/* ───────── login ───────── */
+function pickCustomerType(t){loginType=t;document.getElementById('ct_company').classList.toggle('on',t==='company');document.getElementById('ct_individual').classList.toggle('on',t==='individual');}
+function togglePw(){const p=document.getElementById('loginPass'),e=document.getElementById('pwEye');if(p.type==='password'){p.type='text';e.className='ti ti-eye-off';}else{p.type='password';e.className='ti ti-eye';}}
+function doLogin(){
+  const uid=document.getElementById('loginUser').value.trim();
+  const pw=document.getElementById('loginPass').value.trim();
+  if(!uid||!pw){document.getElementById('loginErr').classList.add('show');return;}
+  document.getElementById('loginErr').classList.remove('show');
+  state.userType=loginType;
+  document.body.classList.add('authed');
+  buildDocs();
+  goScreen(1);
+  showToast('Welcome back, '+(uid.split('.')[0].charAt(0).toUpperCase()+uid.split('.')[0].slice(1)));
+}
+
+/* ───────── profile + modals ───────── */
+function toggleDropdown(e){e.stopPropagation();document.getElementById('dropdown').classList.toggle('show');}
+document.addEventListener('click',()=>document.getElementById('dropdown').classList.remove('show'));
+function openModal(id){document.getElementById('dropdown').classList.remove('show');document.getElementById(id).classList.add('show');}
+function closeModal(id){document.getElementById(id).classList.remove('show');}
+function logout(){document.getElementById('dropdown').classList.remove('show');fullReset();document.body.classList.remove('authed');goScreen(0);showToast('You have been logged out');}
+
+/* ───────── screen nav ───────── */
+function goScreen(i){document.querySelectorAll('.screen').forEach((s,j)=>s.classList.toggle('active',i===j));window.scrollTo({top:0,behavior:'smooth'});}
+
+/* ───────── upload ───────── */
+function buildDocs(){
+  const docs=DOCS[state.userType];const list=document.getElementById('docList');
+  list.innerHTML='';state.uploaded.clear();state.extracted={};
+  docs.forEach((d,i)=>{
+    const item=document.createElement('div');
+    item.className='doc-item'+(i===0?' active':'');item.id='doc_'+d.id;item.onclick=()=>selectDoc(d.id,i);
+    item.innerHTML=`<div class="scan-line"></div><div class="di-ic"><i class="ti ${d.ic}"></i></div><div><div class="di-name">${d.name}</div><div class="di-sub">${d.sub}</div></div><div class="di-status ${d.req?'req':'pending'}">${d.req?'Required':'Optional'}</div>`;
+    list.appendChild(item);
+  });
+  state.activeDocTab=docs[0].id;updateProgress();showDropzone(docs[0]);
+}
+function selectDoc(id,i){
+  if(scanning)return;
+  state.activeDocTab=id;
+  document.querySelectorAll('.doc-item').forEach(it=>it.classList.remove('active'));
+  document.getElementById('doc_'+id).classList.add('active');
+  const d=DOCS[state.userType][i];
+  if(state.uploaded.has(id))showExtracted(d);else showDropzone(d);
+}
+function setBar(d,done){
+  document.getElementById('umIc').innerHTML=`<i class="ti ${d.ic}"></i>`;
+  document.getElementById('umTitle').textContent=d.name;
+  document.getElementById('umSub').textContent=done?'Read — review the values below':d.sub;
+  document.getElementById('umStep').textContent=done?'✓ Extracted':'';
+}
+function showDropzone(d){
+  setBar(d,false);
+  document.getElementById('dropzone').style.display='flex';
+  document.getElementById('extractedView').classList.remove('show');
+  document.getElementById('dzTitle').textContent='Upload your '+d.name.toLowerCase();
+  document.getElementById('dzDesc').textContent=d.sub+' — drag & drop or click to browse. The AI reads PDF, Word and image scans automatically.';
+}
+function showExtracted(d){
+  setBar(d,true);
+  document.getElementById('dropzone').style.display='none';
+  const view=document.getElementById('extractedView');view.classList.add('show');
+  document.getElementById('exTitle').textContent='Extracted from '+d.name;
+  document.getElementById('exSub').textContent=d.fields.length+' fields read · all editable';
+  const grid=document.getElementById('exGrid');grid.innerHTML='';
+  const saved=state.extracted[d.id]||{};
+  d.fields.forEach((f,idx)=>{
+    const val=saved[f.k]!==undefined?saved[f.k]:f.v;
+    const wrap=document.createElement('div');wrap.className='ex-field';
+    wrap.innerHTML=`<label>${f.k} <span class="tag ai">✦ AI</span></label><input class="inp" value="${val}">`;
+    const inp=wrap.querySelector('input');
+    inp.oninput=()=>{if(!state.extracted[d.id])state.extracted[d.id]={};state.extracted[d.id][f.k]=inp.value;};
+    grid.appendChild(wrap);
+  });
+}
+function triggerActiveUpload(){const docs=DOCS[state.userType];const idx=docs.findIndex(d=>d.id===state.activeDocTab);uploadDoc(state.activeDocTab,idx);}
+function reupload(){const docs=DOCS[state.userType];const idx=docs.findIndex(d=>d.id===state.activeDocTab);showDropzone(docs[idx]);}
+let scanning=false;
+function uploadDoc(id,i){
+  if(scanning||!state.userType)return;
+  const doc=DOCS[state.userType][i];scanning=true;
+  document.getElementById('dropzone').style.display='flex';
+  document.getElementById('extractedView').classList.remove('show');
+  document.getElementById('doc_'+id).classList.add('scanning');
+  const overlay=document.getElementById('scanOverlay');overlay.classList.add('show');
+  document.getElementById('scanTitle').textContent='Reading '+doc.name.toLowerCase()+'…';
+  const foundBox=document.getElementById('foundFields');foundBox.innerHTML='';
+  const statusEl=document.getElementById('scanStatus');
+  let s=0;const stepTimer=setInterval(()=>{statusEl.textContent=SCAN_STEPS[s%SCAN_STEPS.length];s++;},380);
+  let f=0;const fieldTimer=setInterval(()=>{if(f<doc.fields.length){const el=document.createElement('div');el.className='found-field';el.innerHTML=`<i class="ti ti-circle-check"></i> ${doc.fields[f].k}: ${doc.fields[f].v}`;foundBox.appendChild(el);f++;}},400);
+  setTimeout(()=>{
+    clearInterval(stepTimer);clearInterval(fieldTimer);overlay.classList.remove('show');
+    const item=document.getElementById('doc_'+id);item.classList.remove('scanning');item.classList.add('done');
+    item.querySelector('.di-status').className='di-status ok';item.querySelector('.di-status').innerHTML='<i class="ti ti-check"></i> Read';
+    state.uploaded.add(id);
+    if(!state.extracted[id]){state.extracted[id]={};doc.fields.forEach(f=>state.extracted[id][f.k]=f.v);}
+    showExtracted(doc);
+    scanning=false;updateProgress();
+    showToast(doc.fields.length+' fields read from '+doc.name);
+  },2600);
+}
+function updateProgress(){
+  const docs=DOCS[state.userType];const total=docs.length,done=state.uploaded.size;
+  document.getElementById('progLabel').textContent=done+' / '+total;
+  document.getElementById('progFill').style.width=(done/total*100)+'%';
+  const reqDone=docs.filter(d=>d.req).every(d=>state.uploaded.has(d.id));
+  const finDone=state.uploaded.has('fin')||state.uploaded.has('salary')||state.uploaded.has('form16');
+  document.getElementById('toReviewBtn').disabled=!finDone;
+  document.getElementById('uploadNote').textContent=reqDone?'All required documents read. You can continue to review.':(finDone?'Financials read — continue, or add the remaining documents.':'Upload your financial documents to continue.');
+}
+function goToReview(){goScreen(2);setTimeout(animateAutofill,350);}
+
+/* ───────── form ───────── */
+let autofilled=false;
+function switchFormTab(i,btn){document.querySelectorAll('.ft-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.querySelectorAll('.tab-pane').forEach((p,j)=>p.classList.toggle('active',i===j));}
+function buildBankTable(){
+  const months=["Oct-25","Sep-25","Aug-25","Jul-25","Jun-25","May-25"];const body=document.getElementById('bankBody');body.innerHTML='';
+  months.forEach((m,i)=>{const tr=document.createElement('tr');tr.innerHTML=`<td class="m">${m}</td><td><input class="tinp ai" value="SBI / 4521xx" style="text-align:left"></td><td><input class="tinp ai" value="${(12+i*0.4).toFixed(2)}"></td><td><input class="tinp" placeholder="0"></td><td><input class="tinp" placeholder="—" style="text-align:left"></td><td><input class="tinp" placeholder="0"></td><td><input class="tinp ai" value="${i===2?1:i===4?2:0}"></td><td><input class="tinp" placeholder="0"></td><td><input class="tinp ai" value="25.00"></td><td><input class="tinp ai" value="${(1.2+i*0.1).toFixed(2)}"></td>`;body.appendChild(tr);});
+  const tot=document.createElement('tr');tot.className='total';tot.innerHTML=`<td>TOTAL</td><td>—</td><td>74.40</td><td colspan="7" style="text-align:left;font-family:var(--sans);font-weight:400;color:var(--txt2);font-size:10.5px">Excludes FD maturities, loan disbursements and sweep transactions</td>`;body.appendChild(tot);
+}
+function animateAutofill(){
+  if(autofilled)return;autofilled=true;
+  const list=Array.from(document.querySelectorAll('input.ai[data-auto]'));
+  list.forEach((el,i)=>{setTimeout(()=>{const target=el.dataset.auto;el.classList.add('ai-filled','ai-pop');if(/^[0-9.]+$/.test(target))animateCount(el,parseFloat(target),target.includes('.')?2:0);else el.value=target;setTimeout(()=>el.classList.remove('ai-pop'),600);},i*55);});
+  showToast('AI populated '+list.length+' fields from your documents');
+}
+function animateCount(el,target,dec){let cur=0;const steps=22;const inc=target/steps;let n=0;const t=setInterval(()=>{cur+=inc;n++;if(n>=steps){cur=target;clearInterval(t);}el.value=cur.toFixed(dec);},24);}
+function toggleChk(el){el.querySelector('.chk').classList.toggle('on');}
+
+/* ───────── assessment ───────── */
+const BREAKDOWN=[["Consumer CIBIL","15/15",true],["Commercial CMR","10/10",true],["Current ratio","8/8",true],["DSCR","11/15",false],["TOL / ATNW","7/10",false],["EBITDA positive","10/10",true],["Net worth","8/8",true],["Promoter vintage","10/10",true],["Promoter age","4/4",true],["Cheque bounces","0/5",false]];
+const RATIOS=[["Current ratio","1.82","ok"],["Quick ratio","1.24","ok"],["D / E","1.48","ok"],["DSCR","1.92","ok"],["ICR","3.87","ok"],["TOL/ATNW","2.10","ok"],["EBITDA %","18.6%","ok"],["Net margin","9.0%","ok"],["ROE","41%","ok"],["ROCE","22%","ok"],["Inv. days","42","warn"],["CCC","51 d","warn"]];
+const TREND=[["Net sales","174.70","196.20","218.40","242.00","up"],["EBITDA","32.50","36.80","40.20","45.00","up"],["PAT","15.80","18.20","20.60","24.00","up"],["NCA","21.60","24.00","26.40","29.80","up"],["Total debt","44.50","42.00","38.50","34.00","down"],["ATNW","36.20","41.60","47.80","55.00","up"],["DSCR","1.92","2.10","2.24","2.38","up"],["D / E","1.48","1.21","0.98","0.75","down"]];
+const FINAL_SCORE=68;
+function goToAssessment(){goScreen(3);document.getElementById('topScore').classList.add('show');if(!state.assessmentDone){state.assessmentDone=true;renderAssessment();}}
+function renderAssessment(){
+  const bd=document.getElementById('breakdown');bd.innerHTML='';
+  BREAKDOWN.forEach(([k,v,full])=>{const d=document.createElement('div');d.className='bd-row';d.innerHTML=`<span class="k">${k}</span><span class="v ${full?'full':'part'}">${v}</span>`;bd.appendChild(d);});
+  const rt=document.getElementById('ratios');rt.innerHTML='';
+  RATIOS.forEach(([n,v,s])=>{const r=document.createElement('div');r.className='ratio';r.innerHTML=`<div class="rn">${n}</div><div class="rv">${v}</div><div class="rs ${s}">${s==='ok'?'Normal':'Watch'}</div>`;rt.appendChild(r);});
+  const tb=document.getElementById('trendBody');tb.innerHTML='';
+  TREND.forEach(row=>{const tr=document.createElement('tr');const arrow=row[5]==='up'?'<span class="up">↑</span>':'<span class="down">↓</span>';tr.innerHTML=`<td>${row[0]}</td><td>${row[1]}</td><td>${row[2]}</td><td>${row[3]}</td><td>${row[4]}</td><td>${arrow}</td>`;tb.appendChild(tr);});
+  const arc=document.getElementById('gaugeArc');const circ=452,off=circ-(FINAL_SCORE/100*circ);
+  setTimeout(()=>{arc.style.transition='stroke-dashoffset 1.4s cubic-bezier(.2,.7,.3,1)';arc.style.strokeDashoffset=off;},200);
+  let n=0;const t=setInterval(()=>{n+=2;if(n>=FINAL_SCORE){n=FINAL_SCORE;clearInterval(t);}document.getElementById('scoreNum').textContent=n;document.getElementById('topScoreVal').textContent=n+'/100';},28);
+  setTimeout(()=>{document.getElementById('bandName').textContent='B — Low risk';const segs=document.querySelectorAll('#bandScale .band-seg');['#F26D6D','#F59E0B','#FACC15','#10B981','#10B981'].forEach((c,i)=>{setTimeout(()=>{if(i<4)segs[i].style.background=c;},i*120);});},900);
+}
+
+/* ───────── helpers ───────── */
+let toastTimer;
+function showToast(msg){const t=document.getElementById('toast');document.getElementById('toastMsg').textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2600);}
+function clearForm(){autofilled=false;document.querySelectorAll('input.ai[data-auto]').forEach(el=>{el.value='';el.classList.remove('ai-filled');});document.getElementById('topScore').classList.remove('show');}
+function newAssessment(){state.uploaded=new Set();state.extracted={};state.assessmentDone=false;clearForm();buildDocs();goScreen(1);showToast('Started a new assessment');}
+function fullReset(){state={userType:'company',uploaded:new Set(),activeDocTab:null,assessmentDone:false,extracted:{}};clearForm();}
+
+initTheme();
+buildBankTable();
+</script>
+</body>
+</html>
