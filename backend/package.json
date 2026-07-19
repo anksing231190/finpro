@@ -1,0 +1,30 @@
+{
+  "name": "finpro-backend",
+  "version": "1.0.0",
+  "description": "FinPro Credit Assessment Backend API",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "keywords": [
+    "credit",
+    "assessment",
+    "loan",
+    "api"
+  ],
+  "author": "FinPro",
+  "license": "MIT",
+  "dependencies": {
+    "express": "*",
+    "dotenv": "*",
+    "pg": "*",
+    "jsonwebtoken": "*",
+    "bcryptjs": "*",
+    "cors": "*",
+    "twilio": "*",
+    "axios": "*"
+  },
+  "devDependencies": {}
+}
