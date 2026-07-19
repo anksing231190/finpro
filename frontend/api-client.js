@@ -5,7 +5,7 @@
 
 const API_BASE = window.location.hostname === 'localhost'
   ? 'http://localhost:3001/api'
-  : 'https://your-vercel-backend-url.vercel.app/api';
+  : 'https://finpro-seven-mauve.vercel.app/api';
 
 class FinProAPI {
   constructor() {
