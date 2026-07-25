@@ -164,7 +164,6 @@ body.authed .score-chip.show{display:flex}
 .login-err{display:none;align-items:center;gap:7px;font-size:12px;color:var(--red-tx);background:var(--red-bg);border:1px solid var(--line2);padding:9px 12px;border-radius:9px;margin-bottom:14px}
 .login-err.show{display:flex}
 .login-btn{width:100%;justify-content:center;margin-bottom:14px}
-.demo-hint{font-size:11px;color:var(--txt3);text-align:center}
 
 /* ── stepper (in-page) ── */
 .stepper{display:flex;align-items:center;gap:6px;margin:26px 0 4px}
@@ -494,7 +493,6 @@ table.trend .down{color:var(--red)}
         <button class="forgot" onclick="showToast('Password reset link sent')">Forgot password?</button>
       </div>
       <button class="btn btn-primary login-btn" onclick="doLogin()"><i class="ti ti-login-2"></i> Sign in</button>
-      <div class="demo-hint">Demo — enter any user ID and password to continue</div>
     </div>
   </div>
 </section>
@@ -1126,17 +1124,23 @@ async function doLogin(){
   const errEl=document.getElementById('loginErr');
 
   if(!email||!password){
+    const label = authMode==='signup' ? 'email and password' : 'email';
+    errEl.innerHTML = '<i class="ti ti-alert-circle"></i> <span>Please enter your ' + label + '</span>';
     errEl.classList.add('show');
     return;
   }
 
   if(authMode==='signup' && !loginType){
-    errEl.textContent = '⚠️ Please select a customer type';
+    errEl.innerHTML = '<i class="ti ti-alert-circle"></i> <span>Please select a customer type</span>';
     errEl.classList.add('show');
     return;
   }
 
   errEl.classList.remove('show');
+  const loginBtn = document.querySelector('.btn-primary');
+  const originalText = loginBtn.textContent;
+  loginBtn.disabled = true;
+  loginBtn.textContent = '⏳ Processing...';
 
   try {
     let userId;
@@ -1163,9 +1167,21 @@ async function doLogin(){
     showOTPDialog(userId, email);
   } catch(err) {
     console.error('❌ Auth error:', err);
-    const msg = err.message || (authMode==='signup' ? 'Signup failed' : 'Login failed');
-    errEl.innerHTML = '<i class="ti ti-alert-circle"></i> <span>' + msg + '</span>';
+
+    let errorMsg = err.message || 'Authentication failed';
+    if(authMode==='signup' && errorMsg.includes('already')) {
+      errorMsg = '📧 Email already registered. Please Sign In instead.';
+    } else if(authMode==='signin' && errorMsg.includes('not found')) {
+      errorMsg = '❌ Email not found. Please create an account first.';
+    } else if(errorMsg.includes('Invalid password')) {
+      errorMsg = '🔐 Incorrect password. Please try again.';
+    }
+
+    errEl.innerHTML = '<i class="ti ti-alert-circle"></i> <span>' + errorMsg + '</span>';
     errEl.classList.add('show');
+  } finally {
+    loginBtn.disabled = false;
+    loginBtn.textContent = originalText;
   }
 }
 
