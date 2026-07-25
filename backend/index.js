@@ -34,10 +34,12 @@ pool.query('SELECT NOW()', (err, res) => {
 // Import routes
 import authRoutes from './api/auth.js';
 import assessmentRoutes from './api/assessments.js';
+import kycRoutes from './api/kyc.js';
 
 // Routes
 app.use('/api/auth', authRoutes(pool));
 app.use('/api/assessments', assessmentRoutes(pool));
+app.use('/api/kyc', kycRoutes(pool));
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -62,7 +64,10 @@ app.get('/', (req, res) => {
       'GET /api/assessments',
       'GET /api/assessments/:id',
       'PUT /api/assessments/:id',
-      'DELETE /api/assessments/:id'
+      'DELETE /api/assessments/:id',
+      'POST /api/kyc',
+      'GET /api/kyc',
+      'PUT /api/kyc/:id/verify'
     ]
   });
 });
