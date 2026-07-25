@@ -492,6 +492,17 @@ table.trend .down{color:var(--red)}
           <button class="pw-eye" onclick="toggleConfirmPw()" aria-label="Show password"><i class="ti ti-eye" id="confirmPwEye"></i></button>
         </div>
       </div>
+
+      <div id="otpSection" style="display:none;margin-top:20px;padding:18px;background:var(--card2);border-radius:12px;border:1px solid var(--line)">
+        <div style="font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px"><i class="ti ti-mail"></i> Verify your email</div>
+        <div style="font-size:13px;color:var(--txt2);margin-bottom:14px">Enter the 6-digit OTP sent to <span id="otpEmail" style="font-weight:600"></span></div>
+        <div class="lf"><label>OTP Code</label><input class="inp full" id="otpInput" placeholder="000000" maxlength="6" type="text" style="font-size:18px;letter-spacing:8px;font-weight:600;text-align:center"></div>
+        <div style="display:flex;gap:10px;margin-top:14px">
+          <button class="btn btn-primary" style="flex:1" onclick="verifyOtpFromForm()">✅ Verify</button>
+          <button class="btn btn-ghost" style="flex:1" onclick="cancelOtp()">Cancel</button>
+        </div>
+        <div style="font-size:11px;color:var(--txt3);margin-top:10px;text-align:center">Didn't receive? <button style="background:none;border:none;color:var(--violet-tx);cursor:pointer;font-weight:600" onclick="resendOtp()">Resend OTP</button></div>
+      </div>
       <div class="lf" id="ctypeField" style="display:none"><label>Customer type</label>
         <div class="ctype-seg">
           <button class="ctype on" id="ct_company" onclick="pickCustomerType('company')"><span class="ci"><i class="ti ti-building-skyscraper"></i></span><span><span class="ct">Company</span><span class="cd">Business / firm</span></span></button>
@@ -1237,11 +1248,54 @@ async function doLogin(){
   }
 }
 
-function showOTPDialog(userId, email) {
-  const otpInput = prompt(`OTP has been sent to ${email}. Enter OTP:`);
-  if (!otpInput) return;
+let currentOtpUserId = null;
+let currentOtpEmail = null;
 
-  verifyOTPAndLogin(userId, otpInput);
+function showOTPDialog(userId, email) {
+  currentOtpUserId = userId;
+  currentOtpEmail = email;
+
+  // Hide login/signup form, show OTP section
+  document.querySelector('.login-card').style.display = 'none';
+  document.getElementById('otpSection').style.display = 'block';
+  document.getElementById('otpEmail').textContent = email;
+  document.getElementById('otpInput').value = '';
+  document.getElementById('otpInput').focus();
+}
+
+function cancelOtp() {
+  // Show login form again
+  document.querySelector('.login-card').style.display = 'block';
+  document.getElementById('otpSection').style.display = 'none';
+  document.getElementById('otpInput').value = '';
+  currentOtpUserId = null;
+  currentOtpEmail = null;
+}
+
+async function verifyOtpFromForm() {
+  const otp = document.getElementById('otpInput').value.trim();
+
+  if(!otp || otp.length !== 6) {
+    showToast('Please enter a valid 6-digit OTP', 'error');
+    return;
+  }
+
+  await verifyOTPAndLogin(currentOtpUserId, otp);
+}
+
+async function resendOtp() {
+  if(!currentOtpEmail) return;
+
+  try {
+    const otpRes = await api.sendOtp(currentOtpEmail);
+    console.log('✅ OTP resent:', otpRes);
+    showToast('OTP resent to ' + currentOtpEmail);
+    document.getElementById('otpInput').value = '';
+    document.getElementById('otpInput').focus();
+  } catch(err) {
+    console.error('❌ Resend OTP failed:', err);
+    showToast('Failed to resend OTP: ' + err.message, 'error');
+  }
 }
 
 async function verifyOTPAndLogin(userId, otp) {
@@ -1254,11 +1308,20 @@ async function verifyOTPAndLogin(userId, otp) {
     document.body.classList.add('authed');
     buildDocs();
     switchFieldsForMode(loginType);
+
+    // Hide OTP section, show app
+    document.querySelector('.login-card').style.display = 'block';
+    document.getElementById('otpSection').style.display = 'none';
+    currentOtpUserId = null;
+    currentOtpEmail = null;
+
     goScreen(1);
     showToast('Welcome, ' + api.user.fullName);
   } catch(err) {
     console.error('❌ OTP verification failed:', err);
-    showToast('OTP verification failed: ' + err.message, 'error');
+    showToast('Invalid OTP. Please try again.', 'error');
+    document.getElementById('otpInput').value = '';
+    document.getElementById('otpInput').focus();
   }
 }
 
