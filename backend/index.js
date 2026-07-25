@@ -69,9 +69,9 @@ app.get('/', (req, res) => {
       'POST /api/kyc',
       'GET /api/kyc',
       'PUT /api/kyc/:id/verify',
-      'POST /api/upload/kyc',
-      'GET /api/upload/kyc',
-      'DELETE /api/upload/kyc/:fileName'
+      'POST /api/upload',
+      'GET /api/upload?category=documents',
+      'DELETE /api/upload/:filePath'
     ]
   });
 });

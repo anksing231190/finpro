@@ -27,24 +27,27 @@ const supabase = createClient(
 );
 
 export default function setupUploadRoutes() {
-  // Upload KYC document
-  router.post('/kyc', verifyToken, async (req, res) => {
-    try {
-      const { fileName, fileData, documentType } = req.body;
+  const BUCKET_NAME = 'finpro-docs';
 
-      if (!fileName || !fileData) {
+  // Upload document (generic for all doc types)
+  router.post('/', verifyToken, async (req, res) => {
+    try {
+      const { fileName, fileData, documentType, category } = req.body;
+
+      if (!fileName || !fileData || !documentType) {
         return res.status(400).json({
-          error: 'Missing required fields: fileName, fileData'
+          error: 'Missing required fields: fileName, fileData, documentType'
         });
       }
 
       // Convert base64 to buffer
       const buffer = Buffer.from(fileData, 'base64');
-      const filePath = `user-${req.userId}/${documentType}/${fileName}`;
+      // Path: user-{userId}/{category}/{documentType}/{fileName}
+      const filePath = `user-${req.userId}/${category || 'documents'}/${documentType}/${fileName}`;
 
       // Upload to Supabase Storage
       const { data, error } = await supabase.storage
-        .from('kyc-documents')
+        .from(BUCKET_NAME)
         .upload(filePath, buffer, {
           contentType: 'application/octet-stream',
           upsert: false
@@ -59,7 +62,7 @@ export default function setupUploadRoutes() {
 
       // Get public URL
       const { data: publicData } = supabase.storage
-        .from('kyc-documents')
+        .from(BUCKET_NAME)
         .getPublicUrl(filePath);
 
       res.json({
@@ -76,11 +79,12 @@ export default function setupUploadRoutes() {
   });
 
   // List user's uploaded documents
-  router.get('/kyc', verifyToken, async (req, res) => {
+  router.get('/', verifyToken, async (req, res) => {
     try {
+      const category = req.query.category || 'documents';
       const { data, error } = await supabase.storage
-        .from('kyc-documents')
-        .list(`user-${req.userId}/`, {
+        .from(BUCKET_NAME)
+        .list(`user-${req.userId}/${category}`, {
           limit: 100,
           offset: 0,
           sortBy: { column: 'name', order: 'asc' }
@@ -102,12 +106,12 @@ export default function setupUploadRoutes() {
   });
 
   // Delete document
-  router.delete('/kyc/:fileName', verifyToken, async (req, res) => {
+  router.delete('/:filePath', verifyToken, async (req, res) => {
     try {
-      const filePath = `user-${req.userId}/${req.params.fileName}`;
+      const filePath = `user-${req.userId}/${req.params.filePath}`;
 
       const { error } = await supabase.storage
-        .from('kyc-documents')
+        .from(BUCKET_NAME)
         .remove([filePath]);
 
       if (error) {
