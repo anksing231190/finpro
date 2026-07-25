@@ -1473,21 +1473,29 @@ async function saveAssessmentToDB(){
       return;
     }
 
-    // Gather assessment data
+    // Format assessment data for backend
     const assessmentData = {
-      userType: state.userType,
-      financials: financialMetrics,
-      score: parseInt(document.getElementById('scoreNum').textContent),
-      rating: document.getElementById('bandName').textContent,
-      extracted: state.extracted,
-      yearsData: Object.fromEntries(state.yearsData || new Map()),
-      timestamp: new Date().toISOString()
+      customerType: state.userType === 'company' ? 'Company' : 'Individual',
+      financialMetrics: financialMetrics,
+      loanRequirement: {
+        // Extract from loan structuring tab if available
+        amount: 0,
+        tenure: 0,
+        purpose: 'Assessment'
+      },
+      assessmentResults: {
+        score: parseInt(document.getElementById('scoreNum').textContent || '0'),
+        rating: document.getElementById('bandName').textContent || 'Calculating...',
+        dscr: financialMetrics.dscr || 0,
+        extracted: state.extracted
+      },
+      yearsData: state.yearsData || {}
     };
 
     console.log('📊 Saving assessment:', assessmentData);
     const res = await api.saveAssessment(assessmentData);
     console.log('✅ Assessment saved:', res);
-    showToast('✅ Assessment saved to workspace (ID: ' + res.assessmentId + ')');
+    showToast('✅ Assessment saved! (ID: ' + res.assessmentId + ')');
   } catch(err) {
     console.error('❌ Save failed:', err);
     showToast('Failed to save: ' + err.message, 'error');
