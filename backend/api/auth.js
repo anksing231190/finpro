@@ -75,11 +75,15 @@ export default function setupAuthRoutes(pool) {
         }
       }
 
+      // For testing: Log OTP to console
+      console.log('🔐 TEST OTP:', otp);
+
       res.status(201).json({
         userId,
         message: 'Signup successful. OTP sent to your phone.',
         email: result.rows[0].email,
-        fullName: result.rows[0].full_name
+        fullName: result.rows[0].full_name,
+        testOtp: otp  // Remove this in production!
       });
     } catch (error) {
       console.error('❌ Signup error:', error.message);
@@ -131,10 +135,14 @@ export default function setupAuthRoutes(pool) {
         }
       }
 
+      // For testing: Log OTP to console
+      console.log('🔐 TEST OTP:', otp);
+
       res.json({
         userId: user.id,
         email: user.email,
-        message: 'OTP sent to your phone'
+        message: 'OTP sent to your phone',
+        testOtp: otp  // Remove this in production!
       });
     } catch (error) {
       console.error('❌ SendOTP error:', error.message);
