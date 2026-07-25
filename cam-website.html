@@ -964,7 +964,7 @@ table.trend .down{color:var(--red)}
       </div>
     </div><!-- end assess-pane2 -->
 
-    <div class="final-cta"><button class="btn btn-ghost" onclick="newAssessment()"><i class="ti ti-refresh"></i> Start new assessment</button><button class="btn btn-primary" onclick="showToast('CAM report exported as PDF')"><i class="ti ti-download"></i> Export CAM report</button></div>
+    <div class="final-cta"><button class="btn btn-ghost" onclick="newAssessment()"><i class="ti ti-refresh"></i> Start new assessment</button><button class="btn btn-primary" style="background:var(--emerald)" onclick="saveAssessmentToDB()"><i class="ti ti-database"></i> Save to workspace</button><button class="btn btn-primary" onclick="exportCAMReport()"><i class="ti ti-download"></i> Export CAM report</button></div>
   </div>
 </section>
 
@@ -1465,6 +1465,39 @@ function extractFinancialsFromForm(){
   }
 }
 function goToAssessment(){goScreen(3);extractFinancialsFromForm();document.getElementById('topScore').classList.add('show');if(!state.assessmentDone){state.assessmentDone=true;renderAssessment();}}
+
+async function saveAssessmentToDB(){
+  try {
+    if(!api.isAuthenticated()){
+      showToast('Please login to save assessments', 'error');
+      return;
+    }
+
+    // Gather assessment data
+    const assessmentData = {
+      userType: state.userType,
+      financials: financialMetrics,
+      score: parseInt(document.getElementById('scoreNum').textContent),
+      rating: document.getElementById('bandName').textContent,
+      extracted: state.extracted,
+      yearsData: Object.fromEntries(state.yearsData || new Map()),
+      timestamp: new Date().toISOString()
+    };
+
+    console.log('📊 Saving assessment:', assessmentData);
+    const res = await api.saveAssessment(assessmentData);
+    console.log('✅ Assessment saved:', res);
+    showToast('✅ Assessment saved to workspace (ID: ' + res.assessmentId + ')');
+  } catch(err) {
+    console.error('❌ Save failed:', err);
+    showToast('Failed to save: ' + err.message, 'error');
+  }
+}
+
+function exportCAMReport(){
+  showToast('📥 CAM report exported as PDF');
+  // TODO: Implement actual PDF export
+}
 function renderAssessment(){
   const bd=document.getElementById('breakdown');bd.innerHTML='';
   BREAKDOWN.forEach(([k,v,full])=>{const d=document.createElement('div');d.className='bd-row';d.innerHTML=`<span class="k">${k}</span><span class="v ${full?'full':'part'}">${v}</span>`;bd.appendChild(d);});
