@@ -13,13 +13,9 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// Database Connection
+// Database Connection (Supabase PostgreSQL)
 const pool = new Pool({
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT || 5432,
-  database: process.env.DB_NAME,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
+  connectionString: process.env.DATABASE_URL || 'postgresql://postgres:superdry9650165100@db.twxyobrnykrfqayovvhu.supabase.co:5432/postgres'
 });
 
 // Test DB connection
