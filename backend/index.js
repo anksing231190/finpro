@@ -14,8 +14,11 @@ app.use(express.json());
 app.use(cors());
 
 // Database Connection (Supabase PostgreSQL)
+const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:superdry9650165100@db.twxyobrnykrfqayovvhu.supabase.co:5432/postgres';
+console.log('🔌 Connecting to:', connectionString.split('@')[1]?.split('?')[0] || 'N/A');
+
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || 'postgresql://postgres:superdry9650165100@db.twxyobrnykrfqayovvhu.supabase.co:5432/postgres'
+  connectionString: connectionString + (connectionString.includes('sslmode') ? '' : '?sslmode=require')
 });
 
 // Test DB connection
