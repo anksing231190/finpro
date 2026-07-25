@@ -1300,23 +1300,34 @@ async function resendOtp() {
 
 async function verifyOTPAndLogin(userId, otp) {
   try {
+    console.log('🔐 Verifying OTP:', otp);
     const verifyRes = await api.verifyOtp(userId, otp);
     console.log('✅ OTP verified:', verifyRes);
+    console.log('👤 User data:', api.user);
 
     // OTP successful - API client automatically stored token and user
     state.userType = loginType;
-    document.body.classList.add('authed');
-    buildDocs();
-    switchFieldsForMode(loginType);
+    console.log('📝 State userType set to:', state.userType);
 
-    // Hide OTP section, show app
+    // Reset UI
+    document.body.classList.add('authed');
     document.querySelector('.login-card').style.display = 'block';
     document.getElementById('otpSection').style.display = 'none';
     currentOtpUserId = null;
     currentOtpEmail = null;
 
+    console.log('🏗️ Building docs...');
+    buildDocs();
+    console.log('🎨 Switching fields for mode:', loginType);
+    switchFieldsForMode(loginType);
+
+    console.log('📺 Going to screen 1...');
     goScreen(1);
-    showToast('Welcome, ' + api.user.fullName);
+
+    const userName = api.user?.fullName || 'User';
+    console.log('👋 Showing welcome message for:', userName);
+    showToast('Welcome, ' + userName);
+
   } catch(err) {
     console.error('❌ OTP verification failed:', err);
     showToast('Invalid OTP. Please try again.', 'error');
