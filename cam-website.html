@@ -477,9 +477,19 @@ table.trend .down{color:var(--red)}
 
       <div class="login-err" id="loginErr"><i class="ti ti-alert-circle"></i> <span>Enter your email and password to continue.</span></div>
       <div class="lf"><label>Email</label><input class="inp full" id="loginUser" placeholder="priya@company.com" autocomplete="email"></div>
+
+      <div class="lf" id="fullNameField" style="display:none"><label>Full Name</label><input class="inp full" id="fullName" placeholder="Priya Singh"></div>
+      <div class="lf" id="phoneField" style="display:none"><label>Phone Number</label><input class="inp full" id="phoneNumber" placeholder="+91 98765 43210" type="tel"></div>
+
       <div class="lf" id="pwField"><label>Password</label>
         <div class="pw-wrap"><input class="inp full" id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password">
           <button class="pw-eye" onclick="togglePw()" aria-label="Show password"><i class="ti ti-eye" id="pwEye"></i></button>
+        </div>
+      </div>
+
+      <div class="lf" id="confirmPwField" style="display:none"><label>Confirm Password</label>
+        <div class="pw-wrap"><input class="inp full" id="confirmPass" type="password" placeholder="••••••••">
+          <button class="pw-eye" onclick="toggleConfirmPw()" aria-label="Show password"><i class="ti ti-eye" id="confirmPwEye"></i></button>
         </div>
       </div>
       <div class="lf" id="ctypeField" style="display:none"><label>Customer type</label>
@@ -1090,8 +1100,15 @@ function switchAuthMode(mode){
   document.getElementById('loginSubtitle').textContent = isSignUp ? 'Set up your AI credit assessment workspace' : 'Access your AI credit assessment workspace';
   document.getElementById('ctypeField').style.display = isSignUp ? 'block' : 'none';
   document.getElementById('pwField').style.display = isSignUp ? 'block' : 'none';
+  document.getElementById('confirmPwField').style.display = isSignUp ? 'block' : 'none';
+  document.getElementById('fullNameField').style.display = isSignUp ? 'block' : 'none';
+  document.getElementById('phoneField').style.display = isSignUp ? 'block' : 'none';
   document.querySelector('.btn-primary').textContent = isSignUp ? '✨ Create Account' : '📱 Send OTP';
   document.getElementById('loginErr').innerHTML = '<i class="ti ti-alert-circle"></i> <span>' + (isSignUp ? 'Fill in all fields to create your account.' : 'Enter your email to receive OTP.') + '</span>';
+
+  // Clear password fields when switching modes
+  document.getElementById('loginPass').value = '';
+  document.getElementById('confirmPass').value = '';
 }
 
 function pickCustomerType(t){
@@ -1117,23 +1134,58 @@ function switchFieldsForMode(mode){
   finBtn.style.display=mode==='company'?'inline-block':'none';
   incomeBtn.style.display=mode==='individual'?'inline-block':'none';
 }
-function togglePw(){const p=document.getElementById('loginPass'),e=document.getElementById('pwEye');if(p.type==='password'){p.type='text';e.className='ti ti-eye-off';}else{p.type='password';e.className='ti ti-eye';}}
+function togglePw(){
+  const p=document.getElementById('loginPass'),e=document.getElementById('pwEye');
+  if(p.type==='password'){p.type='text';e.className='ti ti-eye-off';}else{p.type='password';e.className='ti ti-eye';}
+}
+function toggleConfirmPw(){
+  const p=document.getElementById('confirmPass'),e=document.getElementById('confirmPwEye');
+  if(p.type==='password'){p.type='text';e.className='ti ti-eye-off';}else{p.type='password';e.className='ti ti-eye';}
+}
 async function doLogin(){
   const email=document.getElementById('loginUser').value.trim();
-  const password=document.getElementById('loginPass').value.trim();
   const errEl=document.getElementById('loginErr');
 
-  if(!email||!password){
-    const label = authMode==='signup' ? 'email and password' : 'email';
-    errEl.innerHTML = '<i class="ti ti-alert-circle"></i> <span>Please enter your ' + label + '</span>';
+  if(!email){
+    errEl.innerHTML = '<i class="ti ti-alert-circle"></i> <span>Please enter your email</span>';
     errEl.classList.add('show');
     return;
   }
 
-  if(authMode==='signup' && !loginType){
-    errEl.innerHTML = '<i class="ti ti-alert-circle"></i> <span>Please select a customer type</span>';
-    errEl.classList.add('show');
-    return;
+  let fullName, phone, password, confirmPassword;
+
+  if(authMode==='signup'){
+    fullName = document.getElementById('fullName').value.trim();
+    phone = document.getElementById('phoneNumber').value.trim();
+    password = document.getElementById('loginPass').value.trim();
+    confirmPassword = document.getElementById('confirmPass').value.trim();
+
+    // Validate all fields
+    if(!fullName || !phone || !password || !confirmPassword){
+      errEl.innerHTML = '<i class="ti ti-alert-circle"></i> <span>Please fill in all fields</span>';
+      errEl.classList.add('show');
+      return;
+    }
+
+    // Validate password length
+    if(password.length < 8){
+      errEl.innerHTML = '<i class="ti ti-alert-circle"></i> <span>Password must be at least 8 characters</span>';
+      errEl.classList.add('show');
+      return;
+    }
+
+    // Validate passwords match
+    if(password !== confirmPassword){
+      errEl.innerHTML = '<i class="ti ti-alert-circle"></i> <span>🔐 Passwords do not match</span>';
+      errEl.classList.add('show');
+      return;
+    }
+
+    if(!loginType){
+      errEl.innerHTML = '<i class="ti ti-alert-circle"></i> <span>Please select a customer type</span>';
+      errEl.classList.add('show');
+      return;
+    }
   }
 
   errEl.classList.remove('show');
@@ -1147,7 +1199,7 @@ async function doLogin(){
 
     if(authMode==='signup'){
       // New user: Create account
-      const signupRes = await api.signup(email, password, email.split('@')[0], loginType, '');
+      const signupRes = await api.signup(email, password, fullName, loginType, phone);
       console.log('✅ Signup successful:', signupRes);
       userId = signupRes.userId;
       state.userType = loginType;
