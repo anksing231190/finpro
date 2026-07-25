@@ -19,9 +19,7 @@ console.log('🔌 Connecting to:', connectionString.split('@')[1]?.split('?')[0]
 
 const pool = new Pool({
   connectionString: connectionString,
-  ssl: {
-    rejectUnauthorized: false
-  }
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
 // Test DB connection
