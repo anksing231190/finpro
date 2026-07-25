@@ -156,6 +156,8 @@ body.authed .score-chip.show{display:flex}
 .ctype .cd{font-size:9.5px;color:var(--txt3)}
 .ctype.on{border-color:var(--violet);background:var(--violet-bg)}
 .ctype.on .ci{background:var(--violet);color:#fff}
+.mode-btn{flex:1;padding:9px;border-radius:7px;border:none;background:transparent;color:var(--txt2);font-size:12px;font-weight:600;transition:.2s;cursor:pointer}
+.mode-btn.on{background:var(--card);color:var(--txt);box-shadow:0 2px 8px -2px rgba(0,0,0,.15)}
 .login-row{display:flex;align-items:center;justify-content:space-between;margin:18px 0 16px}
 .remember{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--txt2);cursor:pointer}
 .forgot{font-size:12px;color:var(--violet-tx);font-weight:600;background:none;border:none}
@@ -466,16 +468,22 @@ table.trend .down{color:var(--red)}
       </div>
     </div>
     <div class="login-card">
-      <h2>Sign in</h2>
-      <div class="lc-sub">Access your AI credit assessment workspace</div>
-      <div class="login-err" id="loginErr"><i class="ti ti-alert-circle"></i> <span>Enter your user ID and password to continue.</span></div>
-      <div class="lf"><label>User ID</label><input class="inp full" id="loginUser" placeholder="priya.nair" autocomplete="username"></div>
-      <div class="lf"><label>Password</label>
+      <h2 id="loginTitle">Sign in</h2>
+      <div class="lc-sub" id="loginSubtitle">Access your AI credit assessment workspace</div>
+
+      <div style="display:flex;gap:8px;margin-bottom:20px;background:var(--card2);border-radius:10px;padding:4px">
+        <button class="mode-btn on" id="modeSignIn" onclick="switchAuthMode('signin')">Sign In</button>
+        <button class="mode-btn" id="modeSignUp" onclick="switchAuthMode('signup')">Sign Up</button>
+      </div>
+
+      <div class="login-err" id="loginErr"><i class="ti ti-alert-circle"></i> <span>Enter your email and password to continue.</span></div>
+      <div class="lf"><label>Email</label><input class="inp full" id="loginUser" placeholder="priya@company.com" autocomplete="email"></div>
+      <div class="lf" id="pwField"><label>Password</label>
         <div class="pw-wrap"><input class="inp full" id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password">
           <button class="pw-eye" onclick="togglePw()" aria-label="Show password"><i class="ti ti-eye" id="pwEye"></i></button>
         </div>
       </div>
-      <div class="lf"><label>Customer type</label>
+      <div class="lf" id="ctypeField" style="display:none"><label>Customer type</label>
         <div class="ctype-seg">
           <button class="ctype on" id="ct_company" onclick="pickCustomerType('company')"><span class="ci"><i class="ti ti-building-skyscraper"></i></span><span><span class="ct">Company</span><span class="cd">Business / firm</span></span></button>
           <button class="ctype" id="ct_individual" onclick="pickCustomerType('individual')"><span class="ci"><i class="ti ti-user"></i></span><span><span class="ct">Individual</span><span class="cd">Salaried person</span></span></button>
@@ -1073,6 +1081,21 @@ function setTheme(mode){try{localStorage.setItem('apex-theme',mode);}catch(e){}a
 function initTheme(){let saved='light';try{saved=localStorage.getItem('apex-theme')||'light';}catch(e){}applyTheme(saved);document.querySelectorAll('#themeSeg button').forEach(b=>b.classList.toggle('on',b.dataset.theme===saved));window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{let cur='light';try{cur=localStorage.getItem('apex-theme')||'light';}catch(e){}if(cur==='system')applyTheme('system');});}
 
 /* ───────── login ───────── */
+let authMode='signin';
+
+function switchAuthMode(mode){
+  authMode=mode;
+  const isSignUp = mode==='signup';
+  document.getElementById('modeSignIn').classList.toggle('on', !isSignUp);
+  document.getElementById('modeSignUp').classList.toggle('on', isSignUp);
+  document.getElementById('loginTitle').textContent = isSignUp ? 'Create Account' : 'Sign in';
+  document.getElementById('loginSubtitle').textContent = isSignUp ? 'Set up your AI credit assessment workspace' : 'Access your AI credit assessment workspace';
+  document.getElementById('ctypeField').style.display = isSignUp ? 'block' : 'none';
+  document.getElementById('pwField').style.display = isSignUp ? 'block' : 'none';
+  document.querySelector('.btn-primary').textContent = isSignUp ? '✨ Create Account' : '📱 Send OTP';
+  document.getElementById('loginErr').innerHTML = '<i class="ti ti-alert-circle"></i> <span>' + (isSignUp ? 'Fill in all fields to create your account.' : 'Enter your email to receive OTP.') + '</span>';
+}
+
 function pickCustomerType(t){
   loginType=t;
   document.getElementById('ct_company').classList.toggle('on',t==='company');
@@ -1101,26 +1124,47 @@ async function doLogin(){
   const email=document.getElementById('loginUser').value.trim();
   const password=document.getElementById('loginPass').value.trim();
   const errEl=document.getElementById('loginErr');
-  if(!email||!password){errEl.classList.add('show');return;}
+
+  if(!email||!password){
+    errEl.classList.add('show');
+    return;
+  }
+
+  if(authMode==='signup' && !loginType){
+    errEl.textContent = '⚠️ Please select a customer type';
+    errEl.classList.add('show');
+    return;
+  }
+
   errEl.classList.remove('show');
 
   try {
-    // First, attempt signup (or get existing user)
-    const signupRes = await api.signup(email, password, email.split('@')[0], loginType, '');
-    console.log('✅ Signup successful:', signupRes);
-    state.userId = signupRes.userId;
-    state.userEmail = email;
-    state.userType = loginType;
+    let userId;
 
-    // Send OTP
+    if(authMode==='signup'){
+      // New user: Create account
+      const signupRes = await api.signup(email, password, email.split('@')[0], loginType, '');
+      console.log('✅ Signup successful:', signupRes);
+      userId = signupRes.userId;
+      state.userType = loginType;
+    } else {
+      // Existing user: Just proceed to OTP
+      userId = null; // We'll get this from OTP response
+    }
+
+    state.userEmail = email;
+
+    // Send OTP (works for both signup and signin)
     const otpRes = await api.sendOtp(email);
     console.log('✅ OTP sent:', otpRes);
+    userId = otpRes.userId; // Get userId from OTP response
 
     // Show OTP input
-    showOTPDialog(signupRes.userId, email);
+    showOTPDialog(userId, email);
   } catch(err) {
-    console.error('❌ Login error:', err);
-    errEl.textContent = err.message || 'Login failed';
+    console.error('❌ Auth error:', err);
+    const msg = err.message || (authMode==='signup' ? 'Signup failed' : 'Login failed');
+    errEl.innerHTML = '<i class="ti ti-alert-circle"></i> <span>' + msg + '</span>';
     errEl.classList.add('show');
   }
 }
