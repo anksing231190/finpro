@@ -1,0 +1,11 @@
+src/
+.env
+.env.local
+.env.*.local
+node_modules/
+.git/
+.gitignore
+README.md
+CLAUDE.md
+*.md
+.DS_Store
