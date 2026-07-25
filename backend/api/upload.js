@@ -1,6 +1,7 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
 import { createClient } from '@supabase/supabase-js';
+import { extractDocumentData } from '../utils/documentExtractor.js';
 
 const router = express.Router();
 
@@ -60,6 +61,18 @@ export default function setupUploadRoutes() {
 
       console.log('✅ File uploaded:', filePath);
 
+      // Extract data from document (if it's KYC document)
+      let extractedData = null;
+      if (category === 'kyc' && (documentType === 'PAN' || documentType === 'Aadhaar')) {
+        try {
+          extractedData = await extractDocumentData(buffer, documentType);
+          console.log('✅ Extracted data:', extractedData);
+        } catch (extractError) {
+          console.warn('⚠️ Extraction failed (but file uploaded):', extractError.message);
+          // Don't fail if extraction fails - file is already uploaded
+        }
+      }
+
       // Get public URL
       const { data: publicData } = supabase.storage
         .from(BUCKET_NAME)
@@ -70,7 +83,8 @@ export default function setupUploadRoutes() {
         fileName: fileName,
         filePath: filePath,
         fileUrl: publicData.publicUrl,
-        message: 'Document uploaded successfully'
+        extractedData: extractedData,
+        message: 'Document uploaded and processed successfully'
       });
     } catch (error) {
       console.error('❌ Upload error:', error.message);

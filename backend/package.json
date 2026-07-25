@@ -26,7 +26,8 @@
     "cors": "*",
     "twilio": "*",
     "axios": "*",
-    "@supabase/supabase-js": "*"
+    "@supabase/supabase-js": "*",
+    "@aws-sdk/client-textract": "*"
   },
   "devDependencies": {}
 }
