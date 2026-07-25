@@ -18,8 +18,7 @@ const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:supe
 console.log('🔌 Connecting to:', connectionString.split('@')[1]?.split('?')[0] || 'N/A');
 
 const pool = new Pool({
-  connectionString: connectionString,
-  ssl: { rejectUnauthorized: false }
+  connectionString: connectionString
 });
 
 // Test DB connection
