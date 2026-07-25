@@ -27,7 +27,7 @@
     "twilio": "*",
     "axios": "*",
     "@supabase/supabase-js": "*",
-    "@aws-sdk/client-textract": "*"
+    "openai": "*"
   },
   "devDependencies": {}
 }
