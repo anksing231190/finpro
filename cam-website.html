@@ -376,6 +376,7 @@ table.trend .down{color:var(--red)}
 @media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.05ms!important}}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--card);border:1px solid var(--emerald-d);color:var(--emerald-tx);padding:12px 20px;border-radius:12px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:10px;z-index:400;box-shadow:var(--shadow);transition:.4s cubic-bezier(.2,.7,.3,1);opacity:0}
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.toast.error{border-color:var(--red);color:var(--red-tx);background:var(--red-bg)}
 </style>
 </head>
 <body>
@@ -1096,17 +1097,57 @@ function switchFieldsForMode(mode){
   incomeBtn.style.display=mode==='individual'?'inline-block':'none';
 }
 function togglePw(){const p=document.getElementById('loginPass'),e=document.getElementById('pwEye');if(p.type==='password'){p.type='text';e.className='ti ti-eye-off';}else{p.type='password';e.className='ti ti-eye';}}
-function doLogin(){
-  const uid=document.getElementById('loginUser').value.trim();
-  const pw=document.getElementById('loginPass').value.trim();
-  if(!uid||!pw){document.getElementById('loginErr').classList.add('show');return;}
-  document.getElementById('loginErr').classList.remove('show');
-  state.userType=loginType;
-  document.body.classList.add('authed');
-  buildDocs();
-  switchFieldsForMode(loginType);
-  goScreen(1);
-  showToast('Welcome back, '+(uid.split('.')[0].charAt(0).toUpperCase()+uid.split('.')[0].slice(1)));
+async function doLogin(){
+  const email=document.getElementById('loginUser').value.trim();
+  const password=document.getElementById('loginPass').value.trim();
+  const errEl=document.getElementById('loginErr');
+  if(!email||!password){errEl.classList.add('show');return;}
+  errEl.classList.remove('show');
+
+  try {
+    // First, attempt signup (or get existing user)
+    const signupRes = await api.signup(email, password, email.split('@')[0], loginType, '');
+    console.log('✅ Signup successful:', signupRes);
+    state.userId = signupRes.userId;
+    state.userEmail = email;
+    state.userType = loginType;
+
+    // Send OTP
+    const otpRes = await api.sendOtp(email);
+    console.log('✅ OTP sent:', otpRes);
+
+    // Show OTP input
+    showOTPDialog(signupRes.userId, email);
+  } catch(err) {
+    console.error('❌ Login error:', err);
+    errEl.textContent = err.message || 'Login failed';
+    errEl.classList.add('show');
+  }
+}
+
+function showOTPDialog(userId, email) {
+  const otpInput = prompt(`OTP has been sent to ${email}. Enter OTP:`);
+  if (!otpInput) return;
+
+  verifyOTPAndLogin(userId, otpInput);
+}
+
+async function verifyOTPAndLogin(userId, otp) {
+  try {
+    const verifyRes = await api.verifyOtp(userId, otp);
+    console.log('✅ OTP verified:', verifyRes);
+
+    // OTP successful - API client automatically stored token and user
+    state.userType = loginType;
+    document.body.classList.add('authed');
+    buildDocs();
+    switchFieldsForMode(loginType);
+    goScreen(1);
+    showToast('Welcome, ' + api.user.fullName);
+  } catch(err) {
+    console.error('❌ OTP verification failed:', err);
+    showToast('OTP verification failed: ' + err.message, 'error');
+  }
 }
 
 /* ───────── profile + modals ───────── */
@@ -1114,7 +1155,18 @@ function toggleDropdown(e){e.stopPropagation();document.getElementById('dropdown
 document.addEventListener('click',()=>document.getElementById('dropdown').classList.remove('show'));
 function openModal(id){document.getElementById('dropdown').classList.remove('show');document.getElementById(id).classList.add('show');}
 function closeModal(id){document.getElementById(id).classList.remove('show');}
-function logout(){document.getElementById('dropdown').classList.remove('show');fullReset();document.body.classList.remove('authed');goScreen(0);showToast('You have been logged out');}
+async function logout(){
+  document.getElementById('dropdown').classList.remove('show');
+  try {
+    await api.logout();
+  } catch(err) {
+    console.warn('Logout warning:', err);
+  }
+  fullReset();
+  document.body.classList.remove('authed');
+  goScreen(0);
+  showToast('You have been logged out');
+}
 
 /* ───────── screen nav ───────── */
 function goScreen(i){document.querySelectorAll('.screen').forEach((s,j)=>s.classList.toggle('active',i===j));window.scrollTo({top:0,behavior:'smooth'});}
@@ -1523,7 +1575,16 @@ function runScenario(type){
 
 /* ───────── helpers ───────── */
 let toastTimer;
-function showToast(msg){const t=document.getElementById('toast');document.getElementById('toastMsg').textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2600);}
+function showToast(msg,type='success'){
+  const t=document.getElementById('toast');
+  const msgEl=document.getElementById('toastMsg');
+  msgEl.textContent=msg;
+  t.classList.remove('error');
+  if(type==='error') t.classList.add('error');
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2600);
+}
 function clearForm(){autofilled=false;document.querySelectorAll('input.ai[data-auto]').forEach(el=>{el.value='';el.classList.remove('ai-filled');});document.getElementById('topScore').classList.remove('show');}
 function newAssessment(){state.uploaded=new Set();state.extracted={};state.assessmentDone=false;clearForm();buildDocs();goScreen(1);showToast('Started a new assessment');}
 function fullReset(){state={userType:'company',uploaded:new Set(),activeDocTab:null,assessmentDone:false,extracted:{}};clearForm();}
