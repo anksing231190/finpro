@@ -1154,6 +1154,8 @@ function toggleConfirmPw(){
   if(p.type==='password'){p.type='text';e.className='ti ti-eye-off';}else{p.type='password';e.className='ti ti-eye';}
 }
 async function doLogin(){
+  console.log('🔐 doLogin called, authMode:', authMode);
+
   const email=document.getElementById('loginUser').value.trim();
   const errEl=document.getElementById('loginErr');
 
