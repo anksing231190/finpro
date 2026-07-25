@@ -34,11 +34,13 @@ pool.query('SELECT NOW()', (err, res) => {
 import authRoutes from './api/auth.js';
 import assessmentRoutes from './api/assessments.js';
 import kycRoutes from './api/kyc.js';
+import uploadRoutes from './api/upload.js';
 
 // Routes
 app.use('/api/auth', authRoutes(pool));
 app.use('/api/assessments', assessmentRoutes(pool));
 app.use('/api/kyc', kycRoutes(pool));
+app.use('/api/upload', uploadRoutes());
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -66,7 +68,10 @@ app.get('/', (req, res) => {
       'DELETE /api/assessments/:id',
       'POST /api/kyc',
       'GET /api/kyc',
-      'PUT /api/kyc/:id/verify'
+      'PUT /api/kyc/:id/verify',
+      'POST /api/upload/kyc',
+      'GET /api/upload/kyc',
+      'DELETE /api/upload/kyc/:fileName'
     ]
   });
 });

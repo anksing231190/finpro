@@ -25,7 +25,8 @@
     "bcryptjs": "*",
     "cors": "*",
     "twilio": "*",
-    "axios": "*"
+    "axios": "*",
+    "@supabase/supabase-js": "*"
   },
   "devDependencies": {}
 }
